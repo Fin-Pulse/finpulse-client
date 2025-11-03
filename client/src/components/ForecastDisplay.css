@@ -1,0 +1,63 @@
+.forecast-display {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.forecast-title {
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.forecast-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #023da7;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.forecast-description {
+  color: #888;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .forecast-display {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .forecast-value {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .forecast-display {
+    padding: 18px 15px;
+    border-radius: 10px;
+  }
+
+  .forecast-title {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .forecast-value {
+    font-size: 2rem;
+  }
+
+  .forecast-description {
+    font-size: 0.85rem;
+  }
+}
