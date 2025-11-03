@@ -1,0 +1,45 @@
+.connect-bank-button {
+  background: #dadada;
+  color: #023da7;
+  border: none;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 550;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px #dadada;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 200px;
+}
+
+.connect-bank-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px #dadada;
+}
+
+.connect-bank-button:active {
+  transform: translateY(0);
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .connect-bank-button {
+    padding: 14px 28px;
+    font-size: 1rem;
+    min-width: 180px;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .connect-bank-button {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    min-width: 160px;
+    max-width: 100%;
+  }
+}
