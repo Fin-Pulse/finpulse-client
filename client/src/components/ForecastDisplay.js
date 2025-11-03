@@ -18,7 +18,7 @@ const ForecastDisplay = ({ value }) => {
       </div>
       <p className="forecast-description">
         {value > 0 
-          ? 'Ожидаемый остаток средств' 
+          ? 'Ожидаемые траты' 
           : 'Подключите банк для получения прогноза'
         }
       </p>
