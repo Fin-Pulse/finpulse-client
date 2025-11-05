@@ -33,6 +33,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               value={formData.email}
               onChange={handleChange}
               className="form-input"
+              placeholder="example@mail.ru"
               required
             />
           </div>
@@ -46,6 +47,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
               value={formData.password}
               onChange={handleChange}
               className="form-input"
+              placeholder="Не менее 6 символов"
               required
             />
           </div>
