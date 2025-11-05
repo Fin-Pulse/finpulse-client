@@ -2,8 +2,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 70vh;
+  min-height: 50vh;
   padding: 20px;
+  margin-top: 40px;
 }
 
 .auth-card {
@@ -14,6 +15,7 @@
   width: 100%;
   max-width: 400px;
   border: 1px solid #e0e0e0;
+  margin-top: 20px;
 }
 
 .auth-title {
@@ -50,12 +52,52 @@
   border-radius: 8px;
   font-size: 1rem;
   font-family: 'Montserrat', sans-serif;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-input::placeholder {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  opacity: 1;
+}
+
+.form-input:focus::placeholder {
+  color: #c0c0c0;
 }
 
 .form-input:focus {
   outline: none;
   border-color: #023da7;
+  box-shadow: 0 0 0 3px rgba(2, 61, 167, 0.1);
+}
+
+.form-input:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: #f44336;
+}
+
+/* Стили для поля телефона */
+.phone-input {
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  letter-spacing: 0.3px;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+}
+
+.phone-valid {
+  border-color: #4CAF50 !important;
+}
+
+.phone-invalid {
+  border-color: #f44336 !important;
+}
+
+.phone-hint {
+  font-size: 0.75rem;
+  color: #f44336;
+  margin-top: 6px;
+  font-family: 'Montserrat', sans-serif;
+  opacity: 0.9;
 }
 
 .auth-button {
@@ -68,12 +110,25 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
   margin-top: 10px;
 }
 
-.auth-button:hover {
+.auth-button:hover:not(:disabled) {
   background: #022a7c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 61, 167, 0.3);
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-switch {
@@ -81,6 +136,12 @@
   margin-top: 25px;
   padding-top: 20px;
   border-top: 1px solid #e0e0e0;
+}
+
+.auth-switch p {
+  color: #666;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
 }
 
 .switch-button {
@@ -92,19 +153,49 @@
   font-weight: 600;
   margin-left: 5px;
   text-decoration: underline;
+  transition: color 0.3s ease;
 }
 
 .switch-button:hover {
   color: #022a7c;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  .auth-container {
+    margin-top: 20px; /* Уменьшили отступ на планшетах */
+    min-height: 40vh;
+    padding: 15px;
+  }
+
   .auth-card {
-    padding: 30px 20px;
-    margin: 10px;
+    padding: 30px 25px;
+    margin-top: 10px; /* Уменьшили отступ формы */
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    margin-top: 10px; /* Еще меньше отступ на телефонах */
+    min-height: 30vh;
+    padding: 10px;
+  }
+
+  .auth-card {
+    padding: 25px 20px;
+    margin: 5px;
+    margin-top: 5px; /* Минимальный отступ */
   }
   
   .auth-title {
     font-size: 1.5rem;
+    margin-bottom: 20px; /* Уменьшили отступ под заголовком */
+  }
+
+  .auth-form {
+    gap: 15px; /* Уменьшили расстояние между полями */
+  }
+
+  .form-input {
+    padding: 10px 14px; /* Немного уменьшили padding полей */
   }
 }
