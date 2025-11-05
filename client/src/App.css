@@ -57,6 +57,37 @@ body {
   align-items: start;
 }
 
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid #ffcdd2;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.logout-button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.logout-button:hover {
+  background: #d32f2f;
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 15px 10px;

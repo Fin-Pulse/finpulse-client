@@ -6,7 +6,8 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
     email: '',
     password: '',
     bank_client_id: '',
-    phone: ''
+    phone: '',
+    fullName: ''
   });
 
   const handleChange = (e) => {
@@ -72,6 +73,19 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
               id="phone"
               name="phone"
               value={formData.phone}
+              onChange={handleChange}
+              className="form-input"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="fullName" className="form-label">Полное имя</label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               className="form-input"
               required
