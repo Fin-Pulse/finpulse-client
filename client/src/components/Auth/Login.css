@@ -72,6 +72,16 @@
   box-shadow: 0 0 0 3px rgba(2, 61, 167, 0.1);
 }
 
+.form-input:valid {
+  background: white;
+  border-color: #e0e0e0;
+  box-shadow: none;
+}
+
+input[type="password"].form-input:valid {
+  background: #e6f2ff;
+}
+
 .auth-button {
   background: #023da7;
   color: white;

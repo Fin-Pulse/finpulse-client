@@ -336,3 +336,54 @@ body {
     font-size: 1.1rem;
   }
 }
+
+/* Стили для кнопки "Получить прогноз" */
+.forecast-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 25px;
+}
+
+.get-forecast-button {
+  background: linear-gradient(135deg, #023da7, #022a7c);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(2, 61, 167, 0.3);
+  min-width: 220px;
+}
+
+.get-forecast-button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(2, 61, 167, 0.4);
+}
+
+.get-forecast-button:active {
+  transform: translateY(-1px);
+}
+
+.get-forecast-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .forecast-actions {
+    margin-top: 20px;
+  }
+  
+  .get-forecast-button {
+    padding: 12px 30px;
+    font-size: 1rem;
+    min-width: 200px;
+  }
+}

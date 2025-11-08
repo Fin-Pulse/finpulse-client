@@ -16,41 +16,66 @@ function App() {
   const [error, setError] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Заглушка для уведомлений (потом заменим на WebSocket)
-  const mockNotifications = [
-    {
-      id: 1,
-      title: 'Новая транзакция',
-      message: 'Поступила зарплата: 75 000 ₽',
-      time: '5 минут назад',
-      type: 'success',
-      read: false
-    },
-    {
-      id: 2,
-      title: 'Превышен лимит',
-      message: 'Превышен лимит по категории "Рестораны"',
-      time: '2 часа назад',
-      type: 'warning',
-      read: false
-    },
-    {
-      id: 3,
-      title: 'Обновление системы',
-      message: 'Добавлены новые категории расходов',
-      time: 'Вчера',
-      type: 'info',
-      read: true
-    }
-  ];
-
-  // Инициализация уведомлений
+  // Восстановление сессии при загрузке приложения
   useEffect(() => {
-    if (isAuthenticated) {
-      setNotifications(mockNotifications);
+    const restoreSession = async () => {
+      const token = localStorage.getItem('authToken');
+      
+      if (!token) {
+        setIsInitializing(false);
+        return;
+      }
+
+      apiService.setToken(token);
+      
+      try {
+        const profile = await apiService.getProfile();
+        
+        if (profile?.id) {
+          setCurrentUserId(profile.id);
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('authToken');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        localStorage.removeItem('authToken');
+        setIsAuthenticated(false);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    restoreSession();
+  }, []);
+
+  // Загрузка уведомлений с сервера
+  const loadNotifications = async (userId) => {
+    if (!userId) return;
+
+    try {
+      const notificationsData = await apiService.getUserNotifications(userId);
+      if (Array.isArray(notificationsData)) {
+        setNotifications(notificationsData);
+      }
+    } catch (error) {
+      setNotifications([]);
     }
-  }, [isAuthenticated]);
+  };
+
+  // Инициализация уведомлений после аутентификации
+  useEffect(() => {
+    if (isAuthenticated && currentUserId) {
+      loadNotifications(currentUserId);
+    } else if (!isAuthenticated) {
+      setNotifications([]);
+      setCurrentUserId(null);
+    }
+  }, [isAuthenticated, currentUserId]);
 
   // Функция для входа
   const handleLogin = async (loginData) => {
@@ -59,11 +84,13 @@ function App() {
     
     try {
       const response = await apiService.login(loginData);
-      console.log('Login successful:', response);
-      setIsAuthenticated(true);
+      if (response?.user?.id) {
+        setCurrentUserId(response.user.id);
+        setIsAuthenticated(true);
+      }
     } catch (err) {
       setError(err.message || 'Login failed');
-      console.error('Login error:', err);
+      setCurrentUserId(null);
     } finally {
       setLoading(false);
     }
@@ -78,15 +105,18 @@ function App() {
       const response = await apiService.register({
         email: registerData.email,
         password: registerData.password,
-        clientId: registerData.bank_client_id,
+        bank_client_id: registerData.bank_client_id,
         phone: registerData.phone,
         fullName: registerData.fullName || 'User'
       });
-      console.log('Registration successful:', response);
-      setIsAuthenticated(true);
+      
+      if (response?.user?.id) {
+        setCurrentUserId(response.user.id);
+        setIsAuthenticated(true);
+      }
     } catch (err) {
       setError(err.message || 'Registration failed');
-      console.error('Registration error:', err);
+      setCurrentUserId(null);
     } finally {
       setLoading(false);
     }
@@ -100,31 +130,20 @@ function App() {
     setTransactions([]);
     setForecast(0);
     setNotifications([]);
+    setCurrentUserId(null);
   };
 
-  // Функция для подключения банка (получения транзакций)
-  const handleConnectBank = async () => {
+  // Функция для получения прогноза
+  const handleGetForecast = async () => {
     setLoading(true);
     setError('');
     
     try {
-      const transactionsData = await apiService.getTransactions();
-      console.log('Raw transactions data:', transactionsData);
-      
-      setTransactions(transactionsData);
+      // Здесь будет реальный запрос за прогнозом
+      // Пока просто обновляем состояние
       setForecast(42350);
-      
     } catch (err) {
-      setError('Failed to fetch transactions: ' + err.message);
-      console.error('Connect bank error:', err);
-      
-      const mockTransactions = [
-        { id: 1, date: '2024-01-15', description: 'Продукты', amount: -2500 },
-        { id: 2, date: '2024-01-14', description: 'Зарплата', amount: 50000 },
-        { id: 3, date: '2024-01-13', description: 'Кафе', amount: -1200 },
-      ];
-      setTransactions(mockTransactions);
-      setForecast(42350);
+      setError('Failed to fetch forecast: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -136,10 +155,21 @@ function App() {
   };
 
   // Функция для пометки уведомления как прочитанного
-  const markAsRead = (notificationId) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === notificationId ? { ...notif, read: true } : notif
-    ));
+  const markAsRead = async (notificationId) => {
+    setNotificationLoading(notificationId);
+    
+    try {
+      await apiService.markNotificationAsRead(notificationId);
+      setNotifications(prevNotifications => 
+        prevNotifications.map(notif => 
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    } finally {
+      setNotificationLoading(null);
+    }
   };
 
   // Функция для удаления уведомления
@@ -148,9 +178,19 @@ function App() {
   };
 
   // Подсчет непрочитанных уведомлений
-  const unreadCount = notifications.filter(notif => !notif.read).length;
+  const unreadCount = notifications.filter(notif => !notif.isRead).length;
 
-  // Если пользователь не авторизован, показываем экран входа/регистрации
+  // Пока инициализируемся, показываем загрузку
+  if (isInitializing) {
+    return (
+      <div className="App">
+        <Header showNotificationsButton={false} />
+        <div className="loading">Проверка сессии...</div>
+      </div>
+    );
+  }
+
+  // Если пользователь не авторизован
   if (!isAuthenticated) {
     return (
       <div className="App">
@@ -172,7 +212,7 @@ function App() {
     );
   }
 
-  // Если пользователь авторизован, показываем главный экран
+  // Главный экран
   return (
     <div className="App">
       <Header 
@@ -187,11 +227,20 @@ function App() {
       
       <main className="main-content">
         {error && <div className="error-message">{error}</div>}
-        {loading && <div className="loading">Загрузка транзакций...</div>}
+        {loading && <div className="loading">Загрузка данных...</div>}
         
         <div className="dashboard">
           <div className="forecast-section">
             <ForecastDisplay value={forecast} />
+            <div className="forecast-actions">
+              <button 
+                onClick={handleGetForecast} 
+                className="get-forecast-button"
+                disabled={loading}
+              >
+                {loading ? 'Загрузка...' : 'Получить прогноз'}
+              </button>
+            </div>
           </div>
           
           <div className="transactions-section">
@@ -226,21 +275,29 @@ function App() {
                 notifications.map(notification => (
                   <div 
                     key={notification.id} 
-                    className={`notification-item ${notification.read ? 'read' : 'unread'} ${notification.type}`}
+                    className={`notification-item ${notification.isRead ? 'read' : 'unread'} ${notification.type?.toLowerCase()}`}
                   >
                     <div className="notification-content">
                       <div className="notification-title">{notification.title}</div>
                       <div className="notification-message">{notification.message}</div>
-                      <div className="notification-time">{notification.time}</div>
+                      <div className="notification-time">
+                        {new Date(notification.createdAt).toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
                     </div>
                     <div className="notification-actions">
-                      {!notification.read && (
+                      {!notification.isRead && (
                         <button 
-                          className="mark-read-btn"
+                          className={`mark-read-btn ${notificationLoading === notification.id ? 'loading' : ''}`}
                           onClick={() => markAsRead(notification.id)}
+                          disabled={notificationLoading === notification.id}
                           title="Пометить как прочитанное"
                         >
-                          ✓
+                          {notificationLoading === notification.id ? '...' : '✓'}
                         </button>
                       )}
                       <button 

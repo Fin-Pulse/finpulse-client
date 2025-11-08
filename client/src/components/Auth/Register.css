@@ -72,6 +72,16 @@
   box-shadow: 0 0 0 3px rgba(2, 61, 167, 0.1);
 }
 
+.form-input:valid {
+  background: white;
+  border-color: #e0e0e0;
+  box-shadow: none;
+}
+
+input[type="password"].form-input:valid {
+  background: #e6f2ff;
+}
+
 .form-input:invalid:not(:focus):not(:placeholder-shown) {
   border-color: #f44336;
 }
@@ -85,7 +95,7 @@
 }
 
 .phone-valid {
-  border-color: #4CAF50 !important;
+  border-color: #e0e0e0 !important;
 }
 
 .phone-invalid {

@@ -133,7 +133,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className={`form-input phone-input ${formData.phone ? (isPhoneValid ? 'phone-valid' : 'phone-invalid') : ''}`}
+              className={`form-input phone-input ${formData.phone ? (!isPhoneValid ? 'phone-invalid' : '') : ''}`}
               placeholder="+7(900)1234567"
               required
               maxLength="15" // +7(900)1234567

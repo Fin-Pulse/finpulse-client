@@ -1,6 +1,7 @@
 const API_CONFIG = {
   USER_SERVICE: 'http://localhost:8081',
-  AGGREGATION_SERVICE: 'http://localhost:8082'
+  AGGREGATION_SERVICE: 'http://localhost:8082',
+  NOTIFICATION_SERVICE: 'http://localhost:8084'  // Добавил notification service
 };
 
 class ApiService {
@@ -14,7 +15,23 @@ class ApiService {
   }
 
   async request(service, endpoint, options = {}) {
-    const baseUrl = service === 'user' ? API_CONFIG.USER_SERVICE : API_CONFIG.AGGREGATION_SERVICE;
+    let baseUrl;
+    
+    // Определяем baseUrl в зависимости от сервиса
+    switch(service) {
+      case 'user':
+        baseUrl = API_CONFIG.USER_SERVICE;
+        break;
+      case 'aggregation':
+        baseUrl = API_CONFIG.AGGREGATION_SERVICE;
+        break;
+      case 'notification':
+        baseUrl = API_CONFIG.NOTIFICATION_SERVICE;
+        break;
+      default:
+        baseUrl = API_CONFIG.USER_SERVICE;
+    }
+    
     const url = `${baseUrl}${endpoint}`;
     
     const config = {
@@ -50,14 +67,97 @@ class ApiService {
       
       if (!response.ok) {
         const errorText = await response.text();
+        console.error(`❌ HTTP Error ${response.status} for ${endpoint}:`, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
       
-      const data = await response.json();
-      console.log(`✅ Response from ${endpoint}:`, data);
-      return data;
+      // Для PUT/PATCH запросов без тела возвращаем успех
+      if ((config.method === 'PUT' || config.method === 'PATCH') && response.status === 200) {
+        // Проверяем, есть ли тело ответа
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          console.log(`✅ Response from ${endpoint}:`, data);
+          return data;
+        } else {
+          // Пустой ответ - возвращаем успех
+          console.log(`✅ PUT/PATCH request successful for ${endpoint}`);
+          return { success: true };
+        }
+      }
+      
+      // Проверяем Content-Type перед парсингом JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        console.log(`✅ Response from ${endpoint}:`, data);
+        return data;
+      } else {
+        const text = await response.text();
+        console.log(`✅ Response from ${endpoint} (text):`, text);
+        return text;
+      }
     } catch (error) {
       console.error(`❌ API request failed for ${endpoint}:`, error);
+      throw error;
+    }
+  }
+
+  // Получить все уведомления пользователя - через notification service (8084)
+  async getUserNotifications(userId) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return this.request('notification', `/api/notifications/user/${userId}`);
+  }
+
+  // Получить непрочитанные уведомления - через notification service (8084)
+  async getUnreadNotifications(userId) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return this.request('notification', `/api/notifications/user/${userId}/unread`);
+  }
+
+  // Получить количество непрочитанных уведомлений - через notification service (8084)
+  async getUnreadCount(userId) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return this.request('notification', `/api/notifications/user/${userId}/unread-count`);
+  }
+
+  // Метод для отметки уведомления как прочитанного
+  async markNotificationAsRead(notificationId) {
+    console.log(`🔔 Starting markNotificationAsRead for notification: ${notificationId}`);
+    console.log(`🔔 Token present: ${!!this.token}`);
+    
+    if (!this.token) {
+      console.error('❌ No auth token available for markNotificationAsRead');
+      throw new Error('Authentication required');
+    }
+
+    console.log(`🔔 Making PUT request to notification service: /api/notifications/${notificationId}/read`);
+    
+    try {
+      // Используем PUT согласно Swagger API
+      const result = await this.request('notification', `/api/notifications/${notificationId}/read`, {
+        method: 'PUT'
+      });
+      
+      console.log(`✅ Successfully marked notification ${notificationId} as read:`, result);
+      return result;
+    } catch (error) {
+      console.error(`❌ Failed to mark notification ${notificationId} as read:`, error);
+      
+      // Дополнительная диагностика для CORS ошибок
+      if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+        console.error('🔍 CORS or network error detected. Check:');
+        console.error('🔍 - Is the notification service running on port 8084?');
+        console.error('🔍 - Is CORS configured on the backend?');
+        console.error('🔍 - Is the endpoint correct?');
+      }
+      
       throw error;
     }
   }
@@ -66,14 +166,14 @@ class ApiService {
   async register(userData) {
     // Валидация и очистка данных
     const cleanedData = {
-    email: String(userData.email || '').trim(),
-    password: String(userData.password || '').trim(),
-    bank_client_id: String(userData.bank_client_id || '').trim(),
-    clientId: String(userData.bank_client_id || '').trim(), // дублируем поле
-    bankClientId: String(userData.bank_client_id || '').trim(), // и еще вариант
-    phone: String(userData.phone || '').trim(),
-    fullName: String(userData.fullName || 'User').trim()
-  };
+      email: String(userData.email || '').trim(),
+      password: String(userData.password || '').trim(),
+      bank_client_id: String(userData.bank_client_id || '').trim(),
+      clientId: String(userData.bank_client_id || '').trim(), // дублируем поле
+      bankClientId: String(userData.bank_client_id || '').trim(), // и еще вариант
+      phone: String(userData.phone || '').trim(),
+      fullName: String(userData.fullName || 'User').trim()
+    };
 
     console.log('🔍 Cleaned registration data:', cleanedData);
 
@@ -82,10 +182,18 @@ class ApiService {
       throw new Error('All fields are required');
     }
 
-    return this.request('user', '/api/bank/auth/register', {
+    const data = await this.request('user', '/api/bank/auth/register', {
       method: 'POST',
       body: cleanedData
     });
+    
+    // Если регистрация вернула токен, сохраняем его
+    if (data.accessToken) {
+      this.setToken(data.accessToken);
+      console.log('🔑 Token set successfully after registration');
+    }
+    
+    return data;
   }
 
   // Вход - через user service (8081)
@@ -100,6 +208,7 @@ class ApiService {
     
     if (data.accessToken) {
       this.setToken(data.accessToken);
+      console.log('🔑 Token set successfully after login');
     }
     
     return data;
