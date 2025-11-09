@@ -1,132 +1,70 @@
-# finpulse-client
-Frontend репозитория
+# Getting Started with Create React App
 
-## 1. Начало работы (делаем один раз)
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-```bash
-# Клонируем репозиторий
-git clone https://github.com/Fin-Pulse/finpulse-client.git
-cd finpulse-client
+## Available Scripts
 
-# Проверяем что есть ветки
-git branch -a
-# Должны увидеть: main, develop
-```
+In the project directory, you can run:
 
-## 2. Ежедневный цикл разработки
+### `npm start`
 
-### Шаг 1: Начало дня - берем свежий код
-```bash
-# Переключаемся на develop
-git checkout develop
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-# Качаем последние изменения
-git pull origin develop
-```
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-### Шаг 2: Создаем свою ветку для задачи
-```bash
-# Создаем и переключаемся на новую ветку
-git checkout -b feat/add-login-form
-# или для исправлений: git checkout -b fix/button-color
-```
+### `npm test`
 
-### Шаг 3: Работаем и коммитим
-```bash
-# После каждого логического изменения:
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-# Смотрим что изменилось
-git status
+### `npm run build`
 
-# Добавляем файлы в коммит
-git add .
-# или конкретный файл: git add src/components/Login.js
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-# Создаем коммит
-git commit -m "feat: add login form component"
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-# Продолжаем работать...
-git add .
-git commit -m "feat: add form validation"
-git add . 
-git commit -m "style: improve login form design"
-git commit -m "fix: change login form"
-```
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### Шаг 4: Пушим ветку на GitHub
-```bash
-# Первый пуш - создаем ветку на GitHub
-git push -u origin feat/add-login-form
+### `npm run eject`
 
-# Дальше можно просто:
-git push
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-## 3. Создаем Pull Request
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-1. Идешь на GitHub в репозиторий
-2. Видишь кнопку "Compare & pull request" - жмешь
-3. Заполняешь:
-   - **Title:** `feat: add login form`
-   - **Description:** Что сделал, как тестировать
-   - **Reviewers:** Выбираешь 2 коллег
-4. Жмешь "Create pull request"
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-## 4. Process ревью
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-- Ждешь пока 2 человека поставят "Approve"
-- Если есть комментарии - исправляешь в той же ветке:
-```bash
-# Вносишь изменения
-git add .
-git commit -m "fix: address review comments"
-git push
-```
+## Learn More
 
-## 5. После одобрения - мердж
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-На GitHub в PR:
-1. Жмешь "Merge pull request"
-2. Выбираешь "Squash and merge" (объединяет все коммиты в один)
-3. Жмешь "Confirm merge"
-4. Удаляешь ветку на GitHub (будет кнопка)
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-## 6. Чистим локально
+### Code Splitting
 
-```bash
-# Возвращаемся на develop
-git checkout develop
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-# Качаем обновленную develop (с нашим мерджем)
-git pull origin develop
+### Analyzing the Bundle Size
 
-# Удаляем локальную ветку (она уже не нужна)
-git branch -d feat/add-login-form
-```
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-## 7. Начинаем новую задачу
+### Making a Progressive Web App
 
-И снова с шага 2! 🔄
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-## Важные моменты:
+### Advanced Configuration
 
-- **Всегда** начинай с `git checkout develop && git pull`
-- **Никогда** не коммить прямо в develop/main
-- **Одна ветка** = одна задача/фича
-- **Коммить часто** - каждый час работы
-- **Перед PR** убедись что твой код работает
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-## Если что-то пошло не так:
+### Deployment
 
-```bash
-# Отменить все непроиндексированные изменения
-git checkout .
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-# Вернуться к последнему коммиту (потеряешь изменения!)
-git reset --hard HEAD
+### `npm run build` fails to minify
 
-# Посмотреть историю коммитов
-git log --oneline
-```
-
-Вот и весь цикл! Каждый день повторяешь шаги 2-6 для новой задачи.
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
