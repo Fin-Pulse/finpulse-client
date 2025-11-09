@@ -30,12 +30,10 @@ export class ForecastsClient {
     }
 
     try {
-      // Создаем SockJS соединение с userId в query параметрах
       const wsUrl = `${this.url}?userId=${encodeURIComponent(this.userId)}`;
       console.log(`📊 Connecting to: ${wsUrl}`);
       const socket = new SockJS(wsUrl);
-      
-      // Создаем STOMP клиент
+
       this.client = new Client({
         webSocketFactory: () => socket,
         reconnectDelay: 5000,
@@ -50,9 +48,6 @@ export class ForecastsClient {
             this.onOpen(frame);
           }
 
-          // Подписываемся на прогнозы для конкретного пользователя
-          // Используем user destination prefix для автоматической маршрутизации по userId
-          // Подписываемся на прогнозы для текущего пользователя (Spring сам подставит userId)
         const destination = '/user/queue/forecasts';
         console.log(`📊 Subscribing to: ${destination}`);
 
@@ -71,9 +66,6 @@ export class ForecastsClient {
         }
         });
 
-
-          // Отправляем сообщение для подписки (бэкенд вернет последний прогноз)
-          // Principal будет автоматически определен из сессии/токена
           this.client.publish({
             destination: '/app/forecasts.subscribe'
           });
@@ -104,7 +96,6 @@ export class ForecastsClient {
         }
       });
 
-      // Активируем клиент
       this.client.activate();
       console.log('📊 Forecast WebSocket client activated');
 
@@ -155,7 +146,6 @@ export class ForecastsClient {
   setUserId(userId) {
     if (this.userId !== userId) {
       this.userId = userId;
-      // Переподключаемся с новым userId
       if (this.isConnected || (this.client && this.client.connected)) {
         this.disconnect();
         setTimeout(() => this.connect(), 1000);

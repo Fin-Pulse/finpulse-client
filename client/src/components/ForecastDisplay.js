@@ -22,7 +22,6 @@ const ForecastDisplay = ({ forecast }) => {
     });
   };
 
-  // Если прогноз не загружен
   if (!forecast) {
     return (
       <div className="forecast-display">
@@ -43,7 +42,6 @@ const ForecastDisplay = ({ forecast }) => {
   const weekStart = forecast.forecastWeekStart;
   const chartUrls = forecast.chartUrls || {};
 
-  // Определяем цвет в зависимости от изменения
   const changeColor = changePercentage > 0 ? '#d32f2f' : changePercentage < 0 ? '#2e7d32' : '#666';
   const changeIcon = changePercentage > 0 ? '↑' : changePercentage < 0 ? '↓' : '→';
 
@@ -81,19 +79,6 @@ const ForecastDisplay = ({ forecast }) => {
           <div className="confidence-range">
             {formatCurrency(confidenceMin)} — {formatCurrency(confidenceMax)}
           </div>
-        </div>
-      )}
-
-      {chartUrls.pie_chart && (
-        <div className="forecast-chart">
-          <img 
-            src={chartUrls.pie_chart} 
-            alt="Распределение трат" 
-            className="chart-image"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
         </div>
       )}
 

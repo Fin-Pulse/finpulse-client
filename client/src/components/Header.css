@@ -15,7 +15,6 @@
   position: relative;
 }
 
-/* Контейнер для центрирования заголовка */
 .header-center {
   position: absolute;
   left: 50%;
@@ -53,7 +52,6 @@
   margin-left: auto;
 }
 
-/* Стили для кнопки уведомлений */
 .notifications-button {
   background: white;
   border: none;
@@ -79,14 +77,12 @@
   transform: translateY(0);
 }
 
-/* Стили для иконки уведомлений */
 .notification-icon {
   width: 22px;
   height: 22px;
   object-fit: contain;
 }
 
-/* Бейдж с количеством уведомлений */
 .notification-badge {
   position: absolute;
   top: -5px;
@@ -105,7 +101,6 @@
   font-family: 'Montserrat', sans-serif;
 }
 
-/* Стили для кнопки выхода */
 .logout-button {
   background: white;
   color: #333;
@@ -126,7 +121,6 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
   .header {
     padding: 20px 15px 15px 15px;

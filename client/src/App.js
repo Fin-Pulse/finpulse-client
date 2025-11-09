@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PieChartDisplay from './components/PieChartDisplay';
 import './App.css';
 import Header from './components/Header';
-import TransactionList from './components/TransactionList';
 import ForecastDisplay from './components/ForecastDisplay';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { apiService } from './services/api';
 import { ForecastsClient } from './services/forecasts';
+import { NotificationsClient } from './services/notifications'; 
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -20,23 +21,22 @@ function App() {
   const [notificationLoading, setNotificationLoading] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const forecastsClientRef = useRef(null);
 
-  // Восстановление сессии при загрузке приложения
+  const forecastsClientRef = useRef(null);
+  const notificationsClientRef = useRef(null); 
+
   useEffect(() => {
     const restoreSession = async () => {
       const token = localStorage.getItem('authToken');
-      
       if (!token) {
         setIsInitializing(false);
         return;
       }
 
       apiService.setToken(token);
-      
+
       try {
         const profile = await apiService.getProfile();
-        
         if (profile?.id) {
           setCurrentUserId(profile.id);
           setIsAuthenticated(true);
@@ -44,78 +44,59 @@ function App() {
           localStorage.removeItem('authToken');
           setIsAuthenticated(false);
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('authToken');
         setIsAuthenticated(false);
       } finally {
         setIsInitializing(false);
       }
     };
-
     restoreSession();
   }, []);
 
-  // Загрузка уведомлений с сервера
   const loadNotifications = async (userId) => {
     if (!userId) return;
-
     try {
       const notificationsData = await apiService.getUserNotifications(userId);
       if (Array.isArray(notificationsData)) {
         setNotifications(notificationsData);
       }
-    } catch (error) {
+    } catch {
       setNotifications([]);
     }
   };
 
-  // Инициализация уведомлений после аутентификации
+
   useEffect(() => {
     if (isAuthenticated && currentUserId) {
       loadNotifications(currentUserId);
-    } else if (!isAuthenticated) {
+    } else {
       setNotifications([]);
       setCurrentUserId(null);
     }
   }, [isAuthenticated, currentUserId]);
 
-  // Инициализация WebSocket для прогнозов
   useEffect(() => {
     if (isAuthenticated && currentUserId) {
-      // Создаем клиент для прогнозов
-      const forecastsClient = new ForecastsClient({
-        userId: currentUserId
-      });
+      const forecastsClient = new ForecastsClient({ userId: currentUserId });
 
       forecastsClient.onForecast = (forecastData) => {
         console.log('📊 Received forecast data:', forecastData);
         setForecast(forecastData);
       };
 
-      forecastsClient.onOpen = () => {
-        console.log('✅ Forecast WebSocket connected');
-      };
+      forecastsClient.onOpen = () => console.log('✅ Forecast WebSocket connected');
+      forecastsClient.onError = (error) => console.error('❌ Forecast WS error:', error);
+      forecastsClient.onClose = () => console.log('📊 Forecast WebSocket closed');
 
-      forecastsClient.onError = (error) => {
-        console.error('❌ Forecast WebSocket error:', error);
-      };
-
-      forecastsClient.onClose = () => {
-        console.log('📊 Forecast WebSocket closed');
-      };
-
-      forecastsClientRef.current = forecastsClient;
       forecastsClient.connect();
+      forecastsClientRef.current = forecastsClient;
 
-      // Очистка при размонтировании
       return () => {
-        if (forecastsClientRef.current) {
-          forecastsClientRef.current.disconnect();
-          forecastsClientRef.current = null;
-        }
+        forecastsClient.disconnect();
+        forecastsClientRef.current = null;
       };
     } else {
-      // Отключаемся если пользователь вышел
       if (forecastsClientRef.current) {
         forecastsClientRef.current.disconnect();
         forecastsClientRef.current = null;
@@ -124,11 +105,41 @@ function App() {
     }
   }, [isAuthenticated, currentUserId]);
 
-  // Функция для входа
+  useEffect(() => {
+    if (isAuthenticated && currentUserId) {
+      const client = new NotificationsClient({
+        token: localStorage.getItem('authToken'),
+        userId: currentUserId,
+      });
+
+      client.onNotification = (notif) => {
+        console.log('🔔 New notification received:', notif);
+        setNotifications((prev) => [notif, ...prev]);
+      };
+
+      client.onOpen = () => console.log('✅ Notifications WebSocket connected');
+      client.onError = (err) => console.error('❌ Notifications WS error:', err);
+      client.onClose = () => console.log('🔔 Notifications WebSocket closed');
+
+      client.connect();
+      notificationsClientRef.current = client;
+
+      return () => {
+        client.disconnect();
+        notificationsClientRef.current = null;
+      };
+    } else {
+      if (notificationsClientRef.current) {
+        notificationsClientRef.current.disconnect();
+        notificationsClientRef.current = null;
+      }
+    }
+  }, [isAuthenticated, currentUserId]);
+
+
   const handleLogin = async (loginData) => {
     setLoading(true);
     setError('');
-    
     try {
       const response = await apiService.login(loginData);
       if (response?.user?.id) {
@@ -137,82 +148,59 @@ function App() {
       }
     } catch (err) {
       setError(err.message || 'Login failed');
-      setCurrentUserId(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Функция для регистрации
   const handleRegister = async (registerData) => {
     setLoading(true);
     setError('');
-    
     try {
       const response = await apiService.register({
         email: registerData.email,
         password: registerData.password,
         bank_client_id: registerData.bank_client_id,
         phone: registerData.phone,
-        fullName: registerData.fullName || 'User'
+        fullName: registerData.fullName || 'User',
       });
-      
       if (response?.user?.id) {
         setCurrentUserId(response.user.id);
         setIsAuthenticated(true);
       }
     } catch (err) {
       setError(err.message || 'Registration failed');
-      setCurrentUserId(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Функция для выхода
   const handleLogout = () => {
-    // Отключаем WebSocket для прогнозов
-    if (forecastsClientRef.current) {
-      forecastsClientRef.current.disconnect();
-      forecastsClientRef.current = null;
-    }
-    
+    if (forecastsClientRef.current) forecastsClientRef.current.disconnect();
+    if (notificationsClientRef.current) notificationsClientRef.current.disconnect();
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setAuthMode('login');
-    setTransactions([]);
     setForecast(null);
     setNotifications([]);
     setCurrentUserId(null);
   };
 
-  // Функция для получения прогноза (теперь через WebSocket)
-  const handleGetForecast = async () => {
-    // Прогнозы теперь приходят автоматически через WebSocket
-    // Но можно попробовать переподключиться
+  const handleGetForecast = () => {
     if (forecastsClientRef.current) {
       forecastsClientRef.current.disconnect();
-      setTimeout(() => {
-        if (forecastsClientRef.current) {
-          forecastsClientRef.current.connect();
-        }
-      }, 1000);
+      setTimeout(() => forecastsClientRef.current?.connect(), 1000);
     }
   };
 
-  // Функция для показа/скрытия уведомлений
-  const handleNotificationsClick = () => {
-    setShowNotifications(!showNotifications);
-  };
+  const handleNotificationsClick = () => setShowNotifications(!showNotifications);
 
-  // Функция для пометки уведомления как прочитанного
   const markAsRead = async (notificationId) => {
     setNotificationLoading(notificationId);
-    
     try {
       await apiService.markNotificationAsRead(notificationId);
-      setNotifications(prevNotifications => 
-        prevNotifications.map(notif => 
+      setNotifications((prev) =>
+        prev.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif
         )
       );
@@ -223,15 +211,12 @@ function App() {
     }
   };
 
-  // Функция для удаления уведомления
   const deleteNotification = (notificationId) => {
-    setNotifications(notifications.filter(notif => notif.id !== notificationId));
+    setNotifications(notifications.filter((n) => n.id !== notificationId));
   };
 
-  // Подсчет непрочитанных уведомлений
-  const unreadCount = notifications.filter(notif => !notif.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Пока инициализируемся, показываем загрузку
   if (isInitializing) {
     return (
       <div className="App">
@@ -241,7 +226,6 @@ function App() {
     );
   }
 
-  // Если пользователь не авторизован
   if (!isAuthenticated) {
     return (
       <div className="App">
@@ -249,12 +233,12 @@ function App() {
         {error && <div className="error-message">{error}</div>}
         {loading && <div className="loading">Loading...</div>}
         {authMode === 'login' ? (
-          <Login 
+          <Login
             onLogin={handleLogin}
             onSwitchToRegister={() => setAuthMode('register')}
           />
         ) : (
-          <Register 
+          <Register
             onRegister={handleRegister}
             onSwitchToLogin={() => setAuthMode('login')}
           />
@@ -263,10 +247,9 @@ function App() {
     );
   }
 
-  // Главный экран
   return (
     <div className="App">
-      <Header 
+      <Header
         showNotificationsButton={true}
         onNotificationsClick={handleNotificationsClick}
         notificationCount={unreadCount}
@@ -275,59 +258,46 @@ function App() {
           Выйти
         </button>
       </Header>
-      
+
       <main className="main-content">
         {error && <div className="error-message">{error}</div>}
         {loading && <div className="loading">Загрузка данных...</div>}
-        
+
         <div className="dashboard">
           <div className="forecast-section">
             <ForecastDisplay forecast={forecast} />
-            <div className="forecast-actions">
-              <button 
-                onClick={handleGetForecast} 
-                className="get-forecast-button"
-                disabled={loading}
-                title="Обновить подключение к прогнозам"
-              >
-                {loading ? 'Загрузка...' : 'Обновить прогноз'}
-              </button>
-            </div>
           </div>
-          
+
           <div className="transactions-section">
-            <TransactionList transactions={transactions} />
+            <PieChartDisplay
+              imageUrl={forecast?.chartUrls?.pie_chart}
+              forecastData={forecast?.fullForecastData}
+            />
           </div>
         </div>
       </main>
 
-      {/* Панель уведомлений */}
+      {}
       {showNotifications && (
         <div className="notifications-overlay" onClick={() => setShowNotifications(false)}>
-          <div 
-            className="notifications-panel" 
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="notifications-panel" onClick={(e) => e.stopPropagation()}>
             <div className="notifications-header">
               <h3>Уведомления</h3>
-              <button 
-                className="close-button"
-                onClick={() => setShowNotifications(false)}
-              >
+              <button className="close-button" onClick={() => setShowNotifications(false)}>
                 ×
               </button>
             </div>
-            
+
             <div className="notifications-list">
               {notifications.length === 0 ? (
-                <div className="no-notifications">
-                  Уведомлений пока нет
-                </div>
+                <div className="no-notifications">Уведомлений пока нет</div>
               ) : (
-                notifications.map(notification => (
-                  <div 
-                    key={notification.id} 
-                    className={`notification-item ${notification.isRead ? 'read' : 'unread'} ${notification.type?.toLowerCase()}`}
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`notification-item ${notification.isRead ? 'read' : 'unread'} ${
+                      notification.type?.toLowerCase() || ''
+                    }`}
                   >
                     <div className="notification-content">
                       <div className="notification-title">{notification.title}</div>
@@ -337,14 +307,16 @@ function App() {
                           day: 'numeric',
                           month: 'long',
                           hour: '2-digit',
-                          minute: '2-digit'
+                          minute: '2-digit',
                         })}
                       </div>
                     </div>
                     <div className="notification-actions">
                       {!notification.isRead && (
-                        <button 
-                          className={`mark-read-btn ${notificationLoading === notification.id ? 'loading' : ''}`}
+                        <button
+                          className={`mark-read-btn ${
+                            notificationLoading === notification.id ? 'loading' : ''
+                          }`}
                           onClick={() => markAsRead(notification.id)}
                           disabled={notificationLoading === notification.id}
                           title="Пометить как прочитанное"
@@ -352,7 +324,7 @@ function App() {
                           {notificationLoading === notification.id ? '...' : '✓'}
                         </button>
                       )}
-                      <button 
+                      <button
                         className="delete-btn"
                         onClick={() => deleteNotification(notification.id)}
                         title="Удалить"
@@ -364,9 +336,9 @@ function App() {
                 ))
               )}
             </div>
-            
+
             <div className="notifications-footer">
-              <button 
+              <button
                 className="clear-all-btn"
                 onClick={() => setNotifications([])}
                 disabled={notifications.length === 0}

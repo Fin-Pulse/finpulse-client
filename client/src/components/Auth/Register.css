@@ -86,7 +86,6 @@ input[type="password"].form-input:valid {
   border-color: #f44336;
 }
 
-/* Стили для поля телефона */
 .phone-input {
   font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
   letter-spacing: 0.3px;
@@ -172,20 +171,20 @@ input[type="password"].form-input:valid {
 
 @media (max-width: 768px) {
   .auth-container {
-    margin-top: 20px; /* Уменьшили отступ на планшетах */
+    margin-top: 20px; 
     min-height: 40vh;
     padding: 15px;
   }
 
   .auth-card {
     padding: 30px 25px;
-    margin-top: 10px; /* Уменьшили отступ формы */
+    margin-top: 10px; 
   }
 }
 
 @media (max-width: 480px) {
   .auth-container {
-    margin-top: 10px; /* Еще меньше отступ на телефонах */
+    margin-top: 10px; 
     min-height: 30vh;
     padding: 10px;
   }
@@ -193,19 +192,19 @@ input[type="password"].form-input:valid {
   .auth-card {
     padding: 25px 20px;
     margin: 5px;
-    margin-top: 5px; /* Минимальный отступ */
+    margin-top: 5px; 
   }
   
   .auth-title {
     font-size: 1.5rem;
-    margin-bottom: 20px; /* Уменьшили отступ под заголовком */
+    margin-bottom: 20px;
   }
 
   .auth-form {
-    gap: 15px; /* Уменьшили расстояние между полями */
+    gap: 15px; 
   }
 
   .form-input {
-    padding: 10px 14px; /* Немного уменьшили padding полей */
+    padding: 10px 14px; 
   }
 }

@@ -10,35 +10,35 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
     fullName: ''
   });
 
-  // Функция для ультра-компактного форматирования номера телефона
+ 
   const formatPhoneNumber = (value) => {
-    // Удаляем все нецифровые символы
+    
     const numbers = value.replace(/\D/g, '');
     
-    // Ограничиваем длину (1 - код страны, 10 - номер)
+    
     let formattedValue = numbers.substring(0, 11);
     
     if (formattedValue.length > 0) {
       formattedValue = '+7';
       
       if (numbers.length > 1) {
-        formattedValue += '(' + numbers.substring(1, 4); // Убрали пробел после +7
+        formattedValue += '(' + numbers.substring(1, 4);
       }
       if (numbers.length > 4) {
-        formattedValue += ')' + numbers.substring(4, 7); // Убрали пробел после скобки
+        formattedValue += ')' + numbers.substring(4, 7); 
       }
       if (numbers.length > 7) {
-        formattedValue += numbers.substring(7, 9); // Убрали пробел полностью
+        formattedValue += numbers.substring(7, 9); 
       }
       if (numbers.length > 9) {
-        formattedValue += numbers.substring(9, 11); // Убрали пробел полностью
+        formattedValue += numbers.substring(9, 11); 
       }
     }
     
     return formattedValue;
   };
 
-  // Функция проверки валидности телефона
+ 
   const isValidPhone = (phone) => {
     const cleanPhone = phone.replace(/\D/g, '');
     return cleanPhone.length === 11 && cleanPhone.startsWith('7');
@@ -48,7 +48,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
     const { name, value } = e.target;
     
     if (name === 'phone') {
-      // Форматируем только поле телефона
+      
       const formattedPhone = formatPhoneNumber(value);
       setFormData({
         ...formData,
@@ -65,7 +65,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Очищаем номер телефона от форматирования перед отправкой
+   
     const cleanPhone = formData.phone.replace(/\D/g, '');
     const dataToSend = {
       ...formData,
@@ -136,7 +136,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
               className={`form-input phone-input ${formData.phone ? (!isPhoneValid ? 'phone-invalid' : '') : ''}`}
               placeholder="+7(900)1234567"
               required
-              maxLength="15" // +7(900)1234567
+              maxLength="15" 
             />
             {formData.phone && !isPhoneValid && (
               <div className="phone-hint">Введите корректный номер телефона (11 цифр)</div>

@@ -2,35 +2,33 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 50vh; /* Уменьшили высоту */
-  padding: 10px; /* Уменьшили padding */
-  margin-top: 10px; /* Сильно уменьшили отступ сверху */
+  min-height: 50vh; 
+  padding: 10px;
+  margin-top: 10px; 
 }
 
 .auth-card {
   background: white;
   border-radius: 15px;
-  padding: 30px; /* Уменьшили padding формы */
+  padding: 30px; 
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
   border: 1px solid #e0e0e0;
-  margin-top: 5px; /* Уменьшили отступ сверху */
+  margin-top: 5px; 
 }
 
 .auth-title {
   text-align: center;
   font-family: 'Montserrat', sans-serif;
-  font-size: 1.6rem; /* Уменьшили размер заголовка формы */
-  font-weight: 700;
-  margin-bottom: 20px; /* Уменьшили отступ под заголовком */
-  color: #333;
+  font-size: 1.6rem; 
+  margin-bottom: 20px; 
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Уменьшили расстояние между полями */
+  gap: 15px; 
 }
 
 .form-group {
@@ -41,13 +39,13 @@
 .form-label {
   font-family: 'Montserrat', sans-serif;
   font-weight: 500;
-  margin-bottom: 6px; /* Уменьшили отступ */
+  margin-bottom: 6px; 
   color: #333;
   font-size: 0.9rem;
 }
 
 .form-input {
-  padding: 10px 14px; /* Уменьшили padding полей */
+  padding: 10px 14px; 
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
@@ -86,14 +84,14 @@ input[type="password"].form-input:valid {
   background: #023da7;
   color: white;
   border: none;
-  padding: 12px; /* Уменьшили padding кнопки */
+  padding: 12px; 
   border-radius: 8px;
   font-size: 1rem;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s ease;
-  margin-top: 8px; /* Уменьшили отступ сверху */
+  margin-top: 8px; 
 }
 
 .auth-button:hover {
@@ -102,8 +100,8 @@ input[type="password"].form-input:valid {
 
 .auth-switch {
   text-align: center;
-  margin-top: 20px; /* Уменьшили отступ */
-  padding-top: 15px; /* Уменьшили padding */
+  margin-top: 20px; 
+  padding-top: 15px; 
   border-top: 1px solid #e0e0e0;
 }
 
@@ -124,14 +122,14 @@ input[type="password"].form-input:valid {
 
 @media (max-width: 768px) {
   .auth-container {
-    margin-top: 5px; /* Еще меньше на планшетах */
+    margin-top: 5px; 
     min-height: 45vh;
     padding: 8px;
   }
   
   .auth-card {
     padding: 25px 20px;
-    margin-top: 0; /* Убрали отступ */
+    margin-top: 0;
   }
   
   .auth-title {
@@ -142,7 +140,7 @@ input[type="password"].form-input:valid {
 
 @media (max-width: 480px) {
   .auth-container {
-    margin-top: 0; /* Минимальный отступ */
+    margin-top: 0; 
     min-height: 40vh;
     padding: 5px;
   }
