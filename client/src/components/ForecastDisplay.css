@@ -11,23 +11,87 @@
   color: #666;
   font-size: 1rem;
   font-weight: 500;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.forecast-week {
+  color: #999;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
 }
 
 .forecast-value {
   font-size: 2.5rem;
   font-weight: 700;
   color: #023da7;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   line-height: 1;
+}
+
+.forecast-change {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.change-icon {
+  font-size: 1.2rem;
+}
+
+.change-value {
+  font-weight: 600;
+}
+
+.change-label {
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.forecast-confidence {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.confidence-label {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+
+.confidence-range {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.forecast-chart {
+  margin: 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chart-image {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .forecast-description {
   color: #888;
   font-size: 0.9rem;
   line-height: 1.4;
+  margin-top: 15px;
 }
 
 /* Мобильные стили */

@@ -1,24 +1,105 @@
 import React from 'react';
 import './ForecastDisplay.css';
 
-const ForecastDisplay = ({ value }) => {
+const ForecastDisplay = ({ forecast }) => {
   const formatCurrency = (amount) => {
+    if (!amount) return '—';
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: 'RUB',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  // Если прогноз не загружен
+  if (!forecast) {
+    return (
+      <div className="forecast-display">
+        <h3 className="forecast-title">Прогноз на следующую неделю</h3>
+        <div className="forecast-value">—</div>
+        <p className="forecast-description">
+          Ожидание данных прогноза...
+        </p>
+      </div>
+    );
+  }
+
+  const forecastAmount = forecast.forecastAmount;
+  const confidenceMin = forecast.confidenceMin;
+  const confidenceMax = forecast.confidenceMax;
+  const changePercentage = forecast.changePercentage;
+  const lastWeekAmount = forecast.lastWeekAmount;
+  const weekStart = forecast.forecastWeekStart;
+  const chartUrls = forecast.chartUrls || {};
+
+  // Определяем цвет в зависимости от изменения
+  const changeColor = changePercentage > 0 ? '#d32f2f' : changePercentage < 0 ? '#2e7d32' : '#666';
+  const changeIcon = changePercentage > 0 ? '↑' : changePercentage < 0 ? '↓' : '→';
+
   return (
     <div className="forecast-display">
-      <h3 className="forecast-title">Прогноз на конец месяца</h3>
+      <h3 className="forecast-title">Прогноз на следующую неделю</h3>
+      
+      {weekStart && (
+        <div className="forecast-week">
+          Неделя с {formatDate(weekStart)}
+        </div>
+      )}
+
       <div className="forecast-value">
-        {value > 0 ? formatCurrency(value) : '—'}
+        {formatCurrency(forecastAmount)}
       </div>
+
+      {changePercentage !== null && changePercentage !== undefined && (
+        <div className="forecast-change" style={{ color: changeColor }}>
+          <span className="change-icon">{changeIcon}</span>
+          <span className="change-value">
+            {Math.abs(changePercentage).toFixed(1)}%
+          </span>
+          {lastWeekAmount && (
+            <span className="change-label">
+              {' '}от {formatCurrency(lastWeekAmount)} на прошлой неделе
+            </span>
+          )}
+        </div>
+      )}
+
+      {(confidenceMin || confidenceMax) && (
+        <div className="forecast-confidence">
+          <div className="confidence-label">Диапазон:</div>
+          <div className="confidence-range">
+            {formatCurrency(confidenceMin)} — {formatCurrency(confidenceMax)}
+          </div>
+        </div>
+      )}
+
+      {chartUrls.pie_chart && (
+        <div className="forecast-chart">
+          <img 
+            src={chartUrls.pie_chart} 
+            alt="Распределение трат" 
+            className="chart-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
       <p className="forecast-description">
-        {value > 0 
-          ? 'Ожидаемые траты' 
+        {forecastAmount > 0 
+          ? 'Ожидаемые траты на основе анализа ваших транзакций' 
           : 'Подключите банк для получения прогноза'
         }
       </p>

@@ -102,6 +102,7 @@ class ApiService {
       throw error;
     }
   }
+  
 
   // Получить все уведомления пользователя - через notification service (8084)
   async getUserNotifications(userId) {

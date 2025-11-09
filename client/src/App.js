@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import Header from './components/Header';
 import TransactionList from './components/TransactionList';
@@ -6,10 +6,11 @@ import ForecastDisplay from './components/ForecastDisplay';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { apiService } from './services/api';
+import { ForecastsClient } from './services/forecasts';
 
 function App() {
   const [transactions, setTransactions] = useState([]);
-  const [forecast, setForecast] = useState(0);
+  const [forecast, setForecast] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,7 @@ function App() {
   const [notificationLoading, setNotificationLoading] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const forecastsClientRef = useRef(null);
 
   // Восстановление сессии при загрузке приложения
   useEffect(() => {
@@ -77,6 +79,51 @@ function App() {
     }
   }, [isAuthenticated, currentUserId]);
 
+  // Инициализация WebSocket для прогнозов
+  useEffect(() => {
+    if (isAuthenticated && currentUserId) {
+      // Создаем клиент для прогнозов
+      const forecastsClient = new ForecastsClient({
+        userId: currentUserId
+      });
+
+      forecastsClient.onForecast = (forecastData) => {
+        console.log('📊 Received forecast data:', forecastData);
+        setForecast(forecastData);
+      };
+
+      forecastsClient.onOpen = () => {
+        console.log('✅ Forecast WebSocket connected');
+      };
+
+      forecastsClient.onError = (error) => {
+        console.error('❌ Forecast WebSocket error:', error);
+      };
+
+      forecastsClient.onClose = () => {
+        console.log('📊 Forecast WebSocket closed');
+      };
+
+      forecastsClientRef.current = forecastsClient;
+      forecastsClient.connect();
+
+      // Очистка при размонтировании
+      return () => {
+        if (forecastsClientRef.current) {
+          forecastsClientRef.current.disconnect();
+          forecastsClientRef.current = null;
+        }
+      };
+    } else {
+      // Отключаемся если пользователь вышел
+      if (forecastsClientRef.current) {
+        forecastsClientRef.current.disconnect();
+        forecastsClientRef.current = null;
+      }
+      setForecast(null);
+    }
+  }, [isAuthenticated, currentUserId]);
+
   // Функция для входа
   const handleLogin = async (loginData) => {
     setLoading(true);
@@ -124,28 +171,32 @@ function App() {
 
   // Функция для выхода
   const handleLogout = () => {
+    // Отключаем WebSocket для прогнозов
+    if (forecastsClientRef.current) {
+      forecastsClientRef.current.disconnect();
+      forecastsClientRef.current = null;
+    }
+    
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setAuthMode('login');
     setTransactions([]);
-    setForecast(0);
+    setForecast(null);
     setNotifications([]);
     setCurrentUserId(null);
   };
 
-  // Функция для получения прогноза
+  // Функция для получения прогноза (теперь через WebSocket)
   const handleGetForecast = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      // Здесь будет реальный запрос за прогнозом
-      // Пока просто обновляем состояние
-      setForecast(42350);
-    } catch (err) {
-      setError('Failed to fetch forecast: ' + err.message);
-    } finally {
-      setLoading(false);
+    // Прогнозы теперь приходят автоматически через WebSocket
+    // Но можно попробовать переподключиться
+    if (forecastsClientRef.current) {
+      forecastsClientRef.current.disconnect();
+      setTimeout(() => {
+        if (forecastsClientRef.current) {
+          forecastsClientRef.current.connect();
+        }
+      }, 1000);
     }
   };
 
@@ -231,14 +282,15 @@ function App() {
         
         <div className="dashboard">
           <div className="forecast-section">
-            <ForecastDisplay value={forecast} />
+            <ForecastDisplay forecast={forecast} />
             <div className="forecast-actions">
               <button 
                 onClick={handleGetForecast} 
                 className="get-forecast-button"
                 disabled={loading}
+                title="Обновить подключение к прогнозам"
               >
-                {loading ? 'Загрузка...' : 'Получить прогноз'}
+                {loading ? 'Загрузка...' : 'Обновить прогноз'}
               </button>
             </div>
           </div>
