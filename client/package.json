@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@stomp/stompjs": "^7.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -10,11 +11,16 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-scripts": "5.0.1",
+    "sockjs-client": "^1.6.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:dev": "REACT_APP_API_BASE_URL=http://localhost:8080 REACT_APP_NOTIFICATIONS_WS_URL=/ws/notifications REACT_APP_FORECASTS_WS_URL=/ws/forecasts react-scripts start",
+    "start:prod": "react-scripts start",
     "build": "react-scripts build",
+    "build:dev": "REACT_APP_API_BASE_URL=http://localhost:8080 REACT_APP_NOTIFICATIONS_WS_URL=/ws/notifications REACT_APP_FORECASTS_WS_URL=/ws/forecasts react-scripts build",
+    "build:prod": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

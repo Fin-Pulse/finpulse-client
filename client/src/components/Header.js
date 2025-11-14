@@ -12,7 +12,7 @@ const Header = ({ children, onNotificationsClick, notificationCount, showNotific
           </div>
         </div>
         <div className="header-actions">
-          {/* Кнопка уведомлений показывается только если showNotificationsButton = true */}
+          {}
           {showNotificationsButton && (
             <button 
               className="notifications-button"
@@ -28,7 +28,7 @@ const Header = ({ children, onNotificationsClick, notificationCount, showNotific
               )}
             </button>
           )}
-          {/* Кнопка выхода */}
+          {}
           {children}
         </div>
       </div>
