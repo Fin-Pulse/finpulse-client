@@ -270,8 +270,9 @@ function App() {
 
           <div className="transactions-section">
             <PieChartDisplay
-              imageUrl={forecast?.chartUrls?.pie_chart}
-              forecastData={forecast?.fullForecastData}
+              imageUrl={forecast?.charts?.pie_chart}
+              chartData={forecast?.charts?.pie_chart_data}
+              forecastData={forecast}
             />
           </div>
         </div>

@@ -1,11 +1,20 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
+const getDefaultWsUrl = () => {
+  if (process.env.REACT_APP_NOTIFICATIONS_WS_URL) {
+    return process.env.REACT_APP_NOTIFICATIONS_WS_URL;
+  }
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return '/ws/notifications';
+  }
+  return 'http://localhost:8084/ws/notifications';
+};
 
-const DEFAULT_WS_URL = 'http://localhost:8084/ws/notifications';
+const DEFAULT_WS_URL = getDefaultWsUrl();
 
 export class NotificationsClient {
   constructor({ token, userId, url } = {}) {
-    this.url = url || process.env.REACT_APP_NOTIFICATIONS_WS_URL || DEFAULT_WS_URL;
+    this.url = url || DEFAULT_WS_URL;
     this.token = token || localStorage.getItem('authToken');
     this.userId = userId;
     this.client = null;
@@ -18,6 +27,7 @@ export class NotificationsClient {
     this.onOpen = null;
     this.onClose = null;
     this.onError = null;
+    this.isNginxMode = !!process.env.REACT_APP_API_BASE_URL;
   }
 
   connect() {
@@ -31,9 +41,17 @@ export class NotificationsClient {
       return;
     }
 
+    if (!this.token) {
+      console.error('❌ Authentication token is required for notifications connection');
+      return;
+    }
+
     try {
       const wsUrl = `${this.url}?userId=${encodeURIComponent(this.userId)}`;
       console.log(`🔔 Connecting to notifications at: ${wsUrl}`);
+      console.log(`🔔 Mode: ${this.isNginxMode ? 'Nginx' : 'Direct'}`);
+      console.log(`🔔 User ID: ${this.userId}`);
+      
       const socket = new SockJS(wsUrl);
 
       this.client = new Client({
@@ -52,10 +70,10 @@ export class NotificationsClient {
           this.reconnectAttempts = 0;
 
           if (typeof this.onOpen === 'function') this.onOpen(frame);
-          const destination = '/user/queue/notifications';
-          console.log(`🔔 Subscribing to: ${destination} (will be routed to /user/${this.userId}/queue/notifications)`);
+          const userDestination = '/user/queue/notifications';
+          console.log(`🔔 Subscribing to: ${userDestination}`);
 
-          const subscription = this.client.subscribe(destination, (message) => {
+          const userSubscription = this.client.subscribe(userDestination, (message) => {
             try {
               console.log('📩 Raw notification message received:', message);
               const notification = JSON.parse(message.body);
@@ -72,9 +90,8 @@ export class NotificationsClient {
             }
           });
 
-          console.log(`✅ Subscribed to ${destination}, subscription ID: ${subscription.id}`);
-
-          this.client.subscribe('/topic/notifications', (message) => {
+          console.log(`✅ Subscribed to ${userDestination}, subscription ID: ${userSubscription.id}`);
+          const broadcastSubscription = this.client.subscribe('/topic/notifications', (message) => {
             try {
               const notification = JSON.parse(message.body);
               console.log('📢 Broadcast notification:', notification);
@@ -85,6 +102,8 @@ export class NotificationsClient {
               console.error('❌ Error parsing broadcast notification:', e);
             }
           });
+
+          console.log(`✅ Subscribed to /topic/notifications, subscription ID: ${broadcastSubscription.id}`);
         },
 
         onStompError: (frame) => {
@@ -98,17 +117,22 @@ export class NotificationsClient {
           console.warn('🔔 Notifications WebSocket closed:', event);
           this.isConnected = false;
           if (typeof this.onClose === 'function') this.onClose(event);
-          this.scheduleReconnect();
+          if (event.code !== 1000) {
+            this.scheduleReconnect();
+          }
         },
 
         onWebSocketError: (event) => {
           console.error('❌ Notifications WebSocket error:', event);
+          this.isConnected = false;
           if (typeof this.onError === 'function') this.onError(event);
           this.scheduleReconnect();
         },
       });
 
       this.client.activate();
+      console.log('🔔 Notifications WebSocket client activated');
+
     } catch (error) {
       console.error('❌ Error connecting notifications WebSocket:', error);
       if (typeof this.onError === 'function') this.onError(error);
@@ -151,6 +175,7 @@ export class NotificationsClient {
 
   setUserId(userId) {
     if (this.userId !== userId) {
+      console.log(`🔔 User ID changed from ${this.userId} to ${userId}, reconnecting...`);
       this.userId = userId;
       if (this.isConnected || (this.client && this.client.connected)) {
         this.disconnect();
@@ -158,4 +183,43 @@ export class NotificationsClient {
       }
     }
   }
+
+  setToken(token) {
+    if (this.token !== token) {
+      console.log('🔔 Token updated, reconnecting...');
+      this.token = token;
+      if (this.isConnected || (this.client && this.client.connected)) {
+        this.disconnect();
+        setTimeout(() => this.connect(), 1000);
+      }
+    }
+  }
+  getConnectionStatus() {
+    return {
+      isConnected: this.isConnected,
+      url: this.url,
+      userId: this.userId,
+      hasToken: !!this.token,
+      reconnectAttempts: this.reconnectAttempts,
+      mode: this.isNginxMode ? 'Nginx' : 'Direct'
+    };
+  }
+  sendTestMessage(message) {
+    if (!this.isConnected || !this.client) {
+      console.error('❌ Cannot send test message: WebSocket not connected');
+      return;
+    }
+
+    try {
+      this.client.publish({
+        destination: '/app/test',
+        body: JSON.stringify({ message, timestamp: new Date().toISOString() })
+      });
+      console.log('📤 Test message sent');
+    } catch (error) {
+      console.error('❌ Error sending test message:', error);
+    }
+  }
 }
+
+export default NotificationsClient;
