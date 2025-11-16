@@ -8,6 +8,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "chart.js": "^4.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-scripts": "5.0.1",
@@ -16,7 +17,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:dev": "REACT_APP_API_BASE_URL=http://localhost:8080 REACT_APP_NOTIFICATIONS_WS_URL=/ws/notifications REACT_APP_FORECASTS_WS_URL=/ws/forecasts react-scripts start",
+    "start:prod": "react-scripts start",
     "build": "react-scripts build",
+    "build:dev": "REACT_APP_API_BASE_URL=http://localhost:8080 REACT_APP_NOTIFICATIONS_WS_URL=/ws/notifications REACT_APP_FORECASTS_WS_URL=/ws/forecasts react-scripts build",
+    "build:prod": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
