@@ -66,7 +66,6 @@ function App() {
     }
   };
 
-
   useEffect(() => {
     if (isAuthenticated && currentUserId) {
       loadNotifications(currentUserId);
@@ -113,11 +112,9 @@ function App() {
       });
 
       client.onNotification = (notif) => {
-        console.log('🔔 New notification received:', notif);
         setNotifications((prev) => [notif, ...prev]);
       };
 
-      client.onOpen = () => console.log('✅ Notifications WebSocket connected');
       client.onError = (err) => console.error('❌ Notifications WS error:', err);
       client.onClose = () => console.log('🔔 Notifications WebSocket closed');
 
@@ -135,7 +132,6 @@ function App() {
       }
     }
   }, [isAuthenticated, currentUserId]);
-
 
   const handleLogin = async (loginData) => {
     setLoading(true);
@@ -184,13 +180,6 @@ function App() {
     setForecast(null);
     setNotifications([]);
     setCurrentUserId(null);
-  };
-
-  const handleGetForecast = () => {
-    if (forecastsClientRef.current) {
-      forecastsClientRef.current.disconnect();
-      setTimeout(() => forecastsClientRef.current?.connect(), 1000);
-    }
   };
 
   const handleNotificationsClick = () => setShowNotifications(!showNotifications);
@@ -270,15 +259,14 @@ function App() {
 
           <div className="transactions-section">
             <PieChartDisplay
-              imageUrl={forecast?.charts?.pie_chart}
-              chartData={forecast?.charts?.pie_chart_data}
+              imageUrl={forecast?.chartUrls?.pie_chart}
+              chartData={forecast?.chartUrls?.pie_chart_data}
               forecastData={forecast}
             />
           </div>
         </div>
       </main>
 
-      {}
       {showNotifications && (
         <div className="notifications-overlay" onClick={() => setShowNotifications(false)}>
           <div className="notifications-panel" onClick={(e) => e.stopPropagation()}>

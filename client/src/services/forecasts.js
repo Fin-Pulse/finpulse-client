@@ -1,18 +1,14 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-const getDefaultWsUrl = () => {
-  if (process.env.REACT_APP_FORECASTS_WS_URL) {
-    return process.env.REACT_APP_FORECASTS_WS_URL;
-  }
-  if (process.env.REACT_APP_API_BASE_URL) {
-    return '/ws/forecasts';
-  }
-  
-  return 'http://localhost:8084/ws/forecasts';
+const getDefaultWsUrl = (path) => {
+  const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+  return `${protocol}//${window.location.host}${path}`;
 };
 
-const DEFAULT_WS_URL = getDefaultWsUrl();
+
+
+const DEFAULT_WS_URL = getDefaultWsUrl('/ws/forecasts');
 
 export class ForecastsClient {
   constructor({ userId, url } = {}) {
@@ -27,12 +23,10 @@ export class ForecastsClient {
     this.maxReconnectAttempts = 5;
     this.reconnectTimer = null;
     this.isConnected = false;
-    this.isNginxMode = !!process.env.REACT_APP_API_BASE_URL;
   }
 
   connect() {
     if (this.isConnected || (this.client && this.client.connected)) {
-      console.log('📊 Forecast WebSocket already connected');
       return;
     }
 
@@ -49,9 +43,6 @@ export class ForecastsClient {
         wsUrl = `${this.url}?userId=${encodeURIComponent(this.userId)}`;
       }
       
-      console.log(`📊 Connecting to: ${wsUrl}`);
-      console.log(`📊 Mode: ${this.isNginxMode ? 'Nginx' : 'Direct'}`);
-      
       const socket = new SockJS(wsUrl);
 
       this.client = new Client({
@@ -61,7 +52,6 @@ export class ForecastsClient {
         heartbeatOutgoing: 4000,
         
         onConnect: (frame) => {
-          console.log('✅ Forecast WebSocket connected:', frame);
           this.isConnected = true;
           this.reconnectAttempts = 0;
           
@@ -70,12 +60,10 @@ export class ForecastsClient {
           }
 
           const destination = '/user/queue/forecasts';
-          console.log(`📊 Subscribing to: ${destination}`);
 
           this.client.subscribe(destination, (message) => {
             try {
               const forecast = JSON.parse(message.body);
-              console.log('📊 Received forecast:', forecast);
               if (typeof this.onForecast === 'function') {
                 this.onForecast(forecast);
               }
@@ -91,7 +79,6 @@ export class ForecastsClient {
             destination: '/app/forecasts.subscribe'
           });
           
-          console.log('📊 Forecast subscription request sent');
         },
         
         onStompError: (frame) => {
@@ -104,7 +91,6 @@ export class ForecastsClient {
         },
         
         onWebSocketClose: (event) => {
-          console.log('📊 Forecast WebSocket closed:', event);
           this.isConnected = false;
           if (typeof this.onClose === 'function') {
             this.onClose(event);
@@ -125,7 +111,6 @@ export class ForecastsClient {
       });
 
       this.client.activate();
-      console.log('📊 Forecast WebSocket client activated');
 
     } catch (e) {
       console.error('❌ Error creating forecast WebSocket connection:', e);
@@ -147,7 +132,6 @@ export class ForecastsClient {
     
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = setTimeout(() => {
-      console.log(`📊 Attempting to reconnect forecast WebSocket (attempt ${this.reconnectAttempts})...`);
       this.connect();
     }, delayMs);
   }
@@ -165,7 +149,6 @@ export class ForecastsClient {
       }
       
       this.isConnected = false;
-      console.log('📊 Forecast WebSocket disconnected');
     } catch (e) {
       console.error('❌ Error disconnecting forecast WebSocket:', e);
     }
@@ -175,7 +158,6 @@ export class ForecastsClient {
     if (this.userId !== userId) {
       this.userId = userId;
       if (this.isConnected || (this.client && this.client.connected)) {
-        console.log('📊 User ID changed, reconnecting WebSocket...');
         this.disconnect();
         setTimeout(() => this.connect(), 1000);
       }

@@ -3,27 +3,20 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Копируем оба файла для лучшего кэширования
 COPY package.json package-lock.json ./
-
-# Используем npm install вместо npm ci
 RUN npm install --silent
 
-# Копируем исходный код
 COPY . .
 
-# Собираем приложение
-RUN npm run build
+ENV REACT_APP_API_BASE_URL=http://localhost:8080
+ENV REACT_APP_NOTIFICATIONS_WS_URL=ws://localhost:8080/ws/notifications
+ENV REACT_APP_FORECASTS_WS_URL=ws://localhost:8080/ws/forecasts
 
-# Production stage
+
+RUN npm run build # Теперь сборка будет знать о переменных
+
 FROM nginx:alpine
-
-# Копируем собранное приложение
 COPY --from=builder /app/build /usr/share/nginx/html
-
-# Копируем nginx конфиг
 COPY nginx.conf /etc/nginx/nginx.conf
-
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]

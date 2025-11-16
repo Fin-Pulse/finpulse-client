@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Chart, registerables } from 'chart.js';
 
-// Регистрируем все компоненты Chart.js
 Chart.register(...registerables);
 
 const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
@@ -10,190 +9,248 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
   const [showFallbackImage, setShowFallbackImage] = useState(false);
   const [chartError, setChartError] = useState(false);
 
-  // Извлекаем данные для диаграммы из нового формата
-  const pieChartData = chartData || forecastData?.charts?.pie_chart_data;
-  const fallbackImageUrl = imageUrl || forecastData?.charts?.pie_chart;
+  const pieChartData = chartData || forecastData?.chartUrls?.pie_chart_data;
+  const fallbackImageUrl = imageUrl || forecastData?.chartUrls?.pie_chart;
 
-  // Цветовая палитра для категорий
+
   const colorPalette = [
     '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-    '#FF6384', '#C9CBCF', '#7CFFB2', '#FF6384', '#F7464A', '#46BFBD'
+    '#7CFFB2', '#C9CBCF', '#F7464A', '#46BFBD', '#FDB45C', '#949FB1'
   ];
 
-  // Форматирование валюты
+  const renderValue = (value) => {
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    }
+    if (typeof value === 'object' && value !== null) {
+      if (value.message) return value.message;
+      if (value.advice) return value.advice;
+      if (value.type) return value.type;
+      return JSON.stringify(value);
+    }
+    return String(value);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   const formatCurrency = (amount) => {
     if (!amount && amount !== 0) return '—';
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat('ru-RU', { 
+      style: 'currency', 
+      currency: 'RUB', 
+      minimumFractionDigits: 0, 
+      maximumFractionDigits: 0 
     }).format(amount);
   };
 
-  // Создание диаграммы
-  useEffect(() => {
-    if (!pieChartData || chartError) {
-      setShowFallbackImage(true);
-      return;
-    }
-
-    const ctx = chartRef.current?.getContext('2d');
-    if (!ctx) return;
-
-    // Уничтожаем предыдущую диаграмму
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
-    try {
-      const categories = Object.keys(pieChartData);
-      const data = categories.map(category => pieChartData[category].percent);
-      const amounts = categories.map(category => pieChartData[category].amount);
-
-      const backgroundColors = categories.map((_, index) => 
-        colorPalette[index % colorPalette.length]
-      );
-
-      const newChartInstance = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: categories,
-          datasets: [
-            {
-              data: data,
-              backgroundColor: backgroundColors,
-              borderColor: '#fff',
-              borderWidth: 2,
-              hoverOffset: 15
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                padding: 20,
-                usePointStyle: true,
-                pointStyle: 'circle',
-                font: {
-                  size: 12
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.parsed;
-                  const amount = amounts[context.dataIndex];
-                  return `${label}: ${value}% (${formatCurrency(amount)})`;
-                }
-              }
-            },
-            title: {
-              display: true,
-              text: 'Распределение расходов по категориям',
-              font: {
-                size: 16
-              }
-            }
-          },
-          animation: {
-            animateScale: true,
-            animateRotate: true
-          }
-        }
-      });
-
-      setChartInstance(newChartInstance);
-      setShowFallbackImage(false);
-    } catch (error) {
-      console.error('Ошибка при создании диаграммы:', error);
-      setChartError(true);
-      setShowFallbackImage(true);
-    }
-
-    return () => {
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
-    };
-  }, [pieChartData, chartError]);
-
-  // Обработчик ошибки загрузки fallback изображения
-  const handleImageError = () => {
-    console.error('Не удалось загрузить fallback изображение');
-    setShowFallbackImage(false);
+  const formatPercentage = (value) => {
+    if (!value && value !== 0) return '—';
+    return `${value > 0 ? '+' : ''}${value}%`;
   };
 
-  // Получение данных для анализа (адаптировано под новый формат)
   const getAnalysisData = () => {
     if (!forecastData) return null;
 
-    // Новый формат данных
-    if (forecastData.forecast) {
+    if (forecastData.fullForecastData) {
+      const { analysis, forecast, recommendations, next_steps, data_period } = forecastData.fullForecastData;
+      
       return {
         financialMetrics: {
-          currentForecast: forecastData.forecast.weekly_forecast,
-          confidenceInterval: forecastData.forecast.confidence_interval,
-          trend: forecastData.forecast.trend
+          currentForecast: forecast?.forecast,
+          lastWeekAmount: forecast?.last_week,
+          changePercentage: forecast?.change_pct,
+          changeAmount: forecast?.change,
+          forecastMethod: forecast?.method,
+          volatility: analysis?.volatility,
+          deviation: analysis?.last_week_deviation
         },
-        metadata: forecastData.metadata || {}
+        
+        statistics: analysis?.statistics || {},
+        trends: analysis?.trends || {},
+        seasonality: analysis?.seasonality || {},
+
+        recommendations: {
+          insights: recommendations?.insights || [],
+          financialTips: recommendations?.financial_tips || {},
+          budgetPlanning: recommendations?.budget_planning || {},
+          nextSteps: next_steps || []
+        },
+
+        dataPeriod: data_period || {}
       };
     }
 
-    // Старый формат данных (для обратной совместимости)
-    const { analysis, forecast, recommendations, next_steps, data_period } = forecastData;
-    
     return {
       financialMetrics: {
-        currentForecast: forecast?.forecast,
-        lastWeekAmount: forecast?.last_week,
-        changePercentage: forecast?.change_pct,
-        changeAmount: forecast?.change,
-        forecastMethod: forecast?.method,
-        volatility: analysis?.volatility,
-        deviation: analysis?.last_week_deviation
+        currentForecast: forecastData.forecastAmount,
+        lastWeekAmount: forecastData.lastWeekAmount,
+        changePercentage: forecastData.changePercentage,
+        changeAmount: forecastData.forecastAmount - forecastData.lastWeekAmount,
+        forecastMethod: forecastData.forecastMethod,
+        volatility: null,
+        deviation: null
       },
-      statistics: analysis?.statistics || {},
-      trends: analysis?.trends || {},
-      seasonality: analysis?.seasonality || {},
+      statistics: {},
+      trends: {},
+      seasonality: {},
       recommendations: {
-        insights: recommendations?.insights || [],
-        financialTips: recommendations?.financial_tips || {},
-        budgetPlanning: recommendations?.budget_planning || {},
-        nextSteps: next_steps || []
+        insights: [],
+        financialTips: {},
+        budgetPlanning: {},
+        nextSteps: []
       },
-      dataPeriod: data_period || {}
+      dataPeriod: {
+        total_weeks: 6,
+        start_date: forecastData.forecastWeekStart,
+        end_date: new Date(new Date(forecastData.forecastWeekStart).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString()
+      }
     };
   };
 
   const analysisData = getAnalysisData();
 
-  const formatPercentage = (value) => {
-    if (!value && value !== 0) return '—';
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-    } catch {
-      return dateString;
+  useEffect(() => {
+    if (!pieChartData) {
+      return;
     }
+
+    const createChart = () => {
+      const canvas = chartRef.current;
+      if (!canvas) {
+        console.log('❌ Canvas элемент не найден');
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.log('❌ Не удалось получить контекст canvas');
+        setChartError(true);
+        return;
+      }
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      try {
+        
+        const categories = Object.keys(pieChartData);
+        const percentages = categories.map(category => {
+          const value = pieChartData[category];
+          return typeof value === 'string' ? parseFloat(value) : value;
+        });
+
+        const backgroundColors = categories.map((_, index) => 
+          colorPalette[index % colorPalette.length]
+        );
+
+        const totalForecast = forecastData?.forecastAmount;
+        const categoryAmounts = {};
+        if (totalForecast) {
+          categories.forEach((category, index) => {
+            categoryAmounts[category] = (percentages[index] / 100) * totalForecast;
+          });
+        }
+
+        const newChartInstance = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: categories,
+            datasets: [{
+              data: percentages,
+              backgroundColor: backgroundColors,
+              borderColor: '#fff',
+              borderWidth: 2,
+              hoverOffset: 15
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  padding: 20,
+                  usePointStyle: true,
+                  font: {
+                    size: 12
+                  }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: (context) => {
+                    const label = context.label || '';
+                    const percentage = context.parsed;
+                    let tooltipText = `${label}: ${percentage}%`;
+                    
+                    if (categoryAmounts[label]) {
+                      const amount = categoryAmounts[label];
+                      tooltipText += ` (${formatCurrency(amount)})`;
+                    }
+                    
+                    return tooltipText;
+                  }
+                }
+              }
+            },
+            animation: {
+              animateScale: true,
+              animateRotate: true
+            }
+          }
+        });
+
+        setChartInstance(newChartInstance);
+        setChartError(false);
+        setShowFallbackImage(false);
+      } catch (error) {
+        console.error('❌ Критическая ошибка при создании диаграммы:', error);
+        setChartError(true);
+        setShowFallbackImage(true);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      createChart();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+    };
+  }, [pieChartData, forecastData]);
+
+  const handleImageError = () => {
+    console.error('Не удалось загрузить fallback изображение');
+    setShowFallbackImage(false);
   };
 
-  // Если нет данных для диаграммы и нет fallback изображения
+  const translateCategory = (category) => {
+    const translations = {
+      'cafe': 'Кафе',
+      'grocery': 'Продукты', 
+      'transport': 'Транспорт',
+      'restaurant': 'Рестораны',
+      'entertainment': 'Развлечения',
+      'shopping': 'Шоппинг',
+      'health': 'Здоровье',
+      'other': 'Другое'
+    };
+    return translations[category] || category;
+  };
+
   if (!pieChartData && !fallbackImageUrl) {
     return (
       <div className="pie-chart-container">
@@ -205,26 +262,20 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
     );
   }
 
+
   return (
     <div className="pie-chart-container">
       <div className="chart-header">
         <h3>Детальный анализ расходов</h3>
-        {analysisData?.metadata?.period_days && (
-          <p className="chart-subtitle">
-            На основе анализа за последние {analysisData.metadata.period_days} дней
-          </p>
-        )}
-        {analysisData?.dataPeriod?.total_weeks && (
-          <p className="chart-subtitle">
-            На основе анализа за последние {analysisData.dataPeriod.total_weeks} недель
-          </p>
-        )}
+        <p className="chart-subtitle">
+          На основе анализа за последние {analysisData?.dataPeriod?.total_weeks || 6} недель
+        </p>
       </div>
       
-      {/* Область диаграммы */}
+      {}
       <div className="chart-full-width">
         {showFallbackImage && fallbackImageUrl ? (
-          // Показываем готовое изображение из minio
+          // Показываем fallback ТОЛЬКО при критической ошибке
           <div className="chart-image-wrapper">
             <img 
               src={fallbackImageUrl} 
@@ -232,27 +283,30 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
               className="chart-image-full"
               onError={handleImageError}
             />
+            <div className="fallback-notice">
+              <p>Используется резервное изображение</p>
+            </div>
           </div>
-        ) : !chartError && pieChartData ? (
-          // Рисуем диаграмму на фронтенде
+        ) : (
+          // Всегда пытаемся рисовать диаграмму
           <div className="chart-canvas-wrapper">
             <canvas 
               ref={chartRef}
               style={{ width: '100%', height: '400px' }}
             />
-          </div>
-        ) : (
-          // Заглушка если всё остальное не сработало
-          <div className="no-chart-visual">
-            <p>Не удалось отобразить данные диаграммы</p>
+            {chartError && !showFallbackImage && (
+              <div className="chart-error">
+                <p>Не удалось отобразить интерактивную диаграмму</p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Аналитическая информация */}
+      {}
       {analysisData && (
         <div className="analysis-below-chart">
-          {/* Основные метрики */}
+          {}
           <div className="analysis-section main-metrics">
             <h4>Финансовые показатели</h4>
             <div className="metrics-grid">
@@ -263,31 +317,23 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
                   <div className="metric-value">
                     {formatCurrency(analysisData.financialMetrics.currentForecast)}
                   </div>
-                  {analysisData.financialMetrics.confidenceInterval && (
-                    <div className="metric-description">
-                      Диапазон: {formatCurrency(analysisData.financialMetrics.confidenceInterval[0])} - {formatCurrency(analysisData.financialMetrics.confidenceInterval[1])}
-                    </div>
-                  )}
                 </div>
               </div>
               
-              {/* Старые метрики для обратной совместимости */}
-              {analysisData.financialMetrics.lastWeekAmount !== undefined && (
-                <div className="metric-card">
-                  <div className="metric-icon"></div>
-                  <div className="metric-info">
-                    <div className="metric-label">Траты за прошлую неделю</div>
-                    <div className="metric-value">
-                      {formatCurrency(analysisData.financialMetrics.lastWeekAmount)}
-                    </div>
-                    <div className={`metric-change ${analysisData.financialMetrics.changePercentage < 0 ? 'positive' : 'negative'}`}>
-                      {formatPercentage(analysisData.financialMetrics.changePercentage)}
-                    </div>
+              <div className="metric-card">
+                <div className="metric-icon"></div>
+                <div className="metric-info">
+                  <div className="metric-label">Траты за прошлую неделю</div>
+                  <div className="metric-value">
+                    {formatCurrency(analysisData.financialMetrics.lastWeekAmount)}
+                  </div>
+                  <div className={`metric-change ${analysisData.financialMetrics.changePercentage < 0 ? 'positive' : 'negative'}`}>
+                    {formatPercentage(analysisData.financialMetrics.changePercentage)}
                   </div>
                 </div>
-              )}
+              </div>
               
-              {analysisData.financialMetrics.volatility !== undefined && (
+              {analysisData.financialMetrics.volatility && (
                 <div className="metric-card">
                   <div className="metric-icon"></div>
                   <div className="metric-info">
@@ -302,14 +348,16 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
                 </div>
               )}
 
-              {analysisData.financialMetrics.trend && (
+              {analysisData.financialMetrics.deviation && (
                 <div className="metric-card">
                   <div className="metric-icon"></div>
                   <div className="metric-info">
-                    <div className="metric-label">Тренд</div>
+                    <div className="metric-label">Отклонение от тренда</div>
                     <div className="metric-value">
-                      {analysisData.financialMetrics.trend === 'stable' ? 'Стабильный' : 
-                       analysisData.financialMetrics.trend === 'growing' ? 'Рост' : 'Снижение'}
+                      {analysisData.financialMetrics.deviation?.toFixed(1)}%
+                    </div>
+                    <div className="metric-description">
+                      На прошлой неделе
                     </div>
                   </div>
                 </div>
@@ -317,40 +365,51 @@ const PieChartDisplay = ({ imageUrl, forecastData, chartData }) => {
             </div>
           </div>
 
-          {/* Метаданные */}
-          {analysisData.metadata && (
+          {}
+          {analysisData.dataPeriod && (
             <div className="analysis-section">
-              <h4>Информация о прогнозе</h4>
+              <h4>Период анализа</h4>
               <div className="period-info">
                 <div className="period-item">
-                  <span className="period-label">ID пользователя:</span>
-                  <span className="period-value">{analysisData.metadata.user_id}</span>
+                  <span className="period-label">Начало периода:</span>
+                  <span className="period-value">{formatDate(analysisData.dataPeriod.start_date)}</span>
                 </div>
                 <div className="period-item">
-                  <span className="period-label">Банковский ID:</span>
-                  <span className="period-value">{analysisData.metadata.bank_client_id}</span>
+                  <span className="period-label">Конец периода:</span>
+                  <span className="period-value">{formatDate(analysisData.dataPeriod.end_date)}</span>
                 </div>
                 <div className="period-item">
-                  <span className="period-label">Сгенерировано:</span>
-                  <span className="period-value">{formatDate(analysisData.metadata.generated_at)}</span>
-                </div>
-                <div className="period-item">
-                  <span className="period-label">Период анализа:</span>
-                  <span className="period-value">{analysisData.metadata.period_days} дней</span>
+                  <span className="period-label">Всего недель:</span>
+                  <span className="period-value">{analysisData.dataPeriod.total_weeks}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Рекомендации (старый формат) */}
-          {analysisData.recommendations?.nextSteps && analysisData.recommendations.nextSteps.length > 0 && (
+          {}
+          {analysisData.recommendations.nextSteps && analysisData.recommendations.nextSteps.length > 0 && (
             <div className="analysis-section">
               <h4>Рекомендуемые действия</h4>
               <div className="steps-list">
                 {analysisData.recommendations.nextSteps.map((step, index) => (
                   <div key={index} className="step-card">
                     <div className="step-number">{index + 1}</div>
-                    <div className="step-text">{step}</div>
+                    <div className="step-text">{renderValue(step)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {}
+          {analysisData.recommendations.insights && analysisData.recommendations.insights.length > 0 && (
+            <div className="analysis-section">
+              <h4>Ключевые инсайты</h4>
+              <div className="insights-list">
+                {analysisData.recommendations.insights.map((insight, index) => (
+                  <div key={index} className="insight-card">
+                    <div className="insight-icon"></div>
+                    <div className="insight-text">{renderValue(insight)}</div>
                   </div>
                 ))}
               </div>
