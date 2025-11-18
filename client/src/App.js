@@ -8,6 +8,7 @@ import Register from './components/Auth/Register';
 import { apiService } from './services/api';
 import { ForecastsClient } from './services/forecasts';
 import { NotificationsClient } from './services/notifications'; 
+import { RecommendationsClient } from './services/recommendations';
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -21,6 +22,8 @@ function App() {
   const [notificationLoading, setNotificationLoading] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const recommendationsClientRef = useRef(null);
+  const [recommendations, setRecommendations] = useState([]);
 
   const forecastsClientRef = useRef(null);
   const notificationsClientRef = useRef(null); 
@@ -101,6 +104,36 @@ function App() {
         forecastsClientRef.current = null;
       }
       setForecast(null);
+    }
+  }, [isAuthenticated, currentUserId]);
+
+
+  useEffect(() => {
+    if (isAuthenticated && currentUserId) {
+      const recClient = new RecommendationsClient({ userId: currentUserId });
+
+      recClient.onRecommendation = (data) => {
+        console.log('🎯 Received recommendations:', data); // 👈 логирование
+        setRecommendations(data?.recommendations || []);
+      };
+
+      recClient.onOpen = () => console.log('✅ Recommendations WS connected');
+      recClient.onError = (err) => console.error('❌ Recommendations WS error:', err);
+      recClient.onClose = () => console.log('🔔 Recommendations WS closed');
+
+      recClient.connect();
+      recommendationsClientRef.current = recClient;
+
+      return () => {
+        recClient.disconnect();
+        recommendationsClientRef.current = null;
+      };
+    } else {
+      if (recommendationsClientRef.current) {
+        recommendationsClientRef.current.disconnect();
+        recommendationsClientRef.current = null;
+      }
+      setRecommendations([]);
     }
   }, [isAuthenticated, currentUserId]);
 
