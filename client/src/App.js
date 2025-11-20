@@ -3,11 +3,13 @@ import PieChartDisplay from './components/PieChartDisplay';
 import './App.css';
 import Header from './components/Header';
 import ForecastDisplay from './components/ForecastDisplay';
+import RecommendationsDisplay from './components/RecommendationsDisplay';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { apiService } from './services/api';
 import { ForecastsClient } from './services/forecasts';
 import { NotificationsClient } from './services/notifications'; 
+import { RecommendationsClient } from './services/recommendations';
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -21,10 +23,33 @@ function App() {
   const [notificationLoading, setNotificationLoading] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [recommendations, setRecommendations] = useState([]);
+  const [userData, setUserData] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const forecastsClientRef = useRef(null);
   const notificationsClientRef = useRef(null); 
+  const recommendationsClientRef = useRef(null);
+  const userMenuRef = useRef(null);
 
+  // Функция для нормализации данных пользователя
+  const normalizeUserData = (user) => {
+    if (!user) return null;
+    
+    return {
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      fullName: user.fullName,
+      // Поддерживаем оба варианта написания bankClientId
+      bankClientId: user.bankClientId || user.bank_client_id,
+      createdAt: user.createdAt,
+      verificationStatus: user.verificationStatus,
+      verified: user.verified
+    };
+  };
+
+  // Восстановление сессии
   useEffect(() => {
     const restoreSession = async () => {
       const token = localStorage.getItem('authToken');
@@ -39,6 +64,7 @@ function App() {
         const profile = await apiService.getProfile();
         if (profile?.id) {
           setCurrentUserId(profile.id);
+          setUserData(normalizeUserData(profile));
           setIsAuthenticated(true);
         } else {
           localStorage.removeItem('authToken');
@@ -54,6 +80,21 @@ function App() {
     restoreSession();
   }, []);
 
+  // Закрытие меню пользователя при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Загрузка уведомлений
   const loadNotifications = async (userId) => {
     if (!userId) return;
     try {
@@ -75,6 +116,7 @@ function App() {
     }
   }, [isAuthenticated, currentUserId]);
 
+  // WebSocket для прогнозов
   useEffect(() => {
     if (isAuthenticated && currentUserId) {
       const forecastsClient = new ForecastsClient({ userId: currentUserId });
@@ -104,6 +146,44 @@ function App() {
     }
   }, [isAuthenticated, currentUserId]);
 
+  // WebSocket для рекомендаций
+  useEffect(() => {
+    if (isAuthenticated && currentUserId) {
+      const recClient = new RecommendationsClient({ userId: currentUserId });
+
+      recClient.onRecommendation = (data) => {
+        console.log('🎯 Received recommendations data:', data);
+        
+        if (data && data.recommendations && Array.isArray(data.recommendations)) {
+          console.log('✅ Setting recommendations array:', data.recommendations.length);
+          setRecommendations(data.recommendations);
+        } else {
+          console.log('❌ No recommendations array found in data');
+          setRecommendations([]);
+        }
+      };
+
+      recClient.onOpen = () => console.log('✅ Recommendations WS connected');
+      recClient.onError = (err) => console.error('❌ Recommendations WS error:', err);
+      recClient.onClose = () => console.log('🔔 Recommendations WS closed');
+
+      recClient.connect();
+      recommendationsClientRef.current = recClient;
+
+      return () => {
+        recClient.disconnect();
+        recommendationsClientRef.current = null;
+      };
+    } else {
+      if (recommendationsClientRef.current) {
+        recommendationsClientRef.current.disconnect();
+        recommendationsClientRef.current = null;
+      }
+      setRecommendations([]);
+    }
+  }, [isAuthenticated, currentUserId]);
+
+  // WebSocket для уведомлений
   useEffect(() => {
     if (isAuthenticated && currentUserId) {
       const client = new NotificationsClient({
@@ -133,13 +213,16 @@ function App() {
     }
   }, [isAuthenticated, currentUserId]);
 
+  // Обработчики аутентификации
   const handleLogin = async (loginData) => {
     setLoading(true);
     setError('');
     try {
       const response = await apiService.login(loginData);
+      console.log('Login response:', response); // Для отладки
       if (response?.user?.id) {
         setCurrentUserId(response.user.id);
+        setUserData(normalizeUserData(response.user));
         setIsAuthenticated(true);
       }
     } catch (err) {
@@ -160,8 +243,10 @@ function App() {
         phone: registerData.phone,
         fullName: registerData.fullName || 'User',
       });
+      console.log('Register response:', response); // Для отладки
       if (response?.user?.id) {
         setCurrentUserId(response.user.id);
+        setUserData(normalizeUserData(response.user));
         setIsAuthenticated(true);
       }
     } catch (err) {
@@ -174,14 +259,24 @@ function App() {
   const handleLogout = () => {
     if (forecastsClientRef.current) forecastsClientRef.current.disconnect();
     if (notificationsClientRef.current) notificationsClientRef.current.disconnect();
+    if (recommendationsClientRef.current) recommendationsClientRef.current.disconnect();
+    
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
     setAuthMode('login');
     setForecast(null);
     setNotifications([]);
+    setRecommendations([]);
     setCurrentUserId(null);
+    setUserData(null);
+    setShowUserMenu(false);
   };
 
+  const toggleUserMenu = () => {
+    setShowUserMenu(!showUserMenu);
+  };
+
+  // Обработчики уведомлений
   const handleNotificationsClick = () => setShowNotifications(!showNotifications);
 
   const markAsRead = async (notificationId) => {
@@ -206,19 +301,35 @@ function App() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  // Состояние загрузки
   if (isInitializing) {
     return (
       <div className="App">
-        <Header showNotificationsButton={false} />
+        <Header 
+          showNotificationsButton={false}
+          userData={null}
+          onUserMenuToggle={() => {}}
+          showUserMenu={false}
+          userMenuRef={null}
+          onLogout={() => {}}
+        />
         <div className="loading">Проверка сессии...</div>
       </div>
     );
   }
 
+  // Неаутентифицированный пользователь
   if (!isAuthenticated) {
     return (
       <div className="App">
-        <Header showNotificationsButton={false} />
+        <Header 
+          showNotificationsButton={false}
+          userData={null}
+          onUserMenuToggle={() => {}}
+          showUserMenu={false}
+          userMenuRef={null}
+          onLogout={() => {}}
+        />
         {error && <div className="error-message">{error}</div>}
         {loading && <div className="loading">Loading...</div>}
         {authMode === 'login' ? (
@@ -236,37 +347,50 @@ function App() {
     );
   }
 
+  // Основной интерфейс
   return (
     <div className="App">
       <Header
         showNotificationsButton={true}
         onNotificationsClick={handleNotificationsClick}
         notificationCount={unreadCount}
-      >
-        <button onClick={handleLogout} className="logout-button">
-          Выйти
-        </button>
-      </Header>
+        userData={userData}
+        onUserMenuToggle={toggleUserMenu}
+        showUserMenu={showUserMenu}
+        userMenuRef={userMenuRef}
+        onLogout={handleLogout}
+      />
 
       <main className="main-content">
         {error && <div className="error-message">{error}</div>}
         {loading && <div className="loading">Загрузка данных...</div>}
 
+        {/* Основная панель с ПРАВИЛЬНЫМ ПОРЯДКОМ */}
         <div className="dashboard">
-          <div className="forecast-section">
-            <ForecastDisplay forecast={forecast} />
+          {/* Левая колонка - 1/3 ширины (только для десктопа) */}
+          <div className="left-column">
+            <div className="forecast-section">
+              <ForecastDisplay forecast={forecast} />
+            </div>
+            
+            {/* Блок с банковскими предложениями */}
+            <RecommendationsDisplay recommendations={recommendations} />
           </div>
 
-          <div className="transactions-section">
-            <PieChartDisplay
-              imageUrl={forecast?.chartUrls?.pie_chart}
-              chartData={forecast?.chartUrls?.pie_chart_data}
-              forecastData={forecast}
-            />
+          {/* Правая колонка - 2/3 ширины (только для десктопа) */}
+          <div className="right-column">
+            <div className="transactions-section">
+              <PieChartDisplay
+                imageUrl={forecast?.chartUrls?.pie_chart}
+                chartData={forecast?.chartUrls?.pie_chart_data}
+                forecastData={forecast}
+              />
+            </div>
           </div>
         </div>
       </main>
 
+      {/* Панель уведомлений */}
       {showNotifications && (
         <div className="notifications-overlay" onClick={() => setShowNotifications(false)}>
           <div className="notifications-panel" onClick={(e) => e.stopPropagation()}>
