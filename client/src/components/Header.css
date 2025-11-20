@@ -78,8 +78,8 @@
 }
 
 .notification-icon {
-  width: 22px;
-  height: 22px;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
 }
 
@@ -114,8 +114,8 @@
 .user-avatar-button {
   background: white;
   border: none;
-  width: 45px;
-  height: 45px;
+  width: 45px; /* Уменьшили с 45px до 40px */
+  height: 45px; /* Уменьшили с 45px до 40px */
   border-radius: 50%;
   cursor: pointer;
   padding: 0;
@@ -138,8 +138,8 @@
 }
 
 .user-avatar {
-  width: 100%;
-  height: 100%;
+  width: 110%;
+  height: 110%;
   object-fit: cover;
   border-radius: 50%;
 }
@@ -275,8 +275,8 @@
 
   .notifications-button,
   .user-avatar-button {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
   }
 
   .notification-icon {
@@ -290,9 +290,16 @@
     font-size: 0.6rem;
   }
 
-  .user-dropdown-menu {
-    min-width: 260px;
-    right: -10px;
+    .user-dropdown-menu {
+    position: fixed; /* Меняем на фиксированное позиционирование */
+    top: 50%; /* Центрируем по вертикали */
+    left: 50%; /* Центрируем по горизонтали */
+    right: auto; /* Убираем right */
+    transform: translate(-50%, -50%); /* Сдвигаем обратно на половину ширины/высоты */
+    min-width: 280px;
+    max-width: 90vw; /* Ограничиваем максимальную ширину */
+    margin-top: 0; /* Убираем отступ */
+    z-index: 1001; /* Увеличиваем z-index чтобы было поверх всего */
   }
 
   .user-info-section {
@@ -338,22 +345,18 @@
 
   .notifications-button,
   .user-avatar-button {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .notification-icon {
-    width: 18px;
-    height: 18px;
+    width: 90%;
+    height: 90%;
   }
 
-  .user-dropdown-menu {
-    min-width: 240px;
-    right: -20px;
+   .user-dropdown-menu {
+    min-width: 260px;
+    max-width: 85vw; /* Еще немного уменьшаем на очень маленьких экранах */
   }
-}
-/* Добавьте эти стили в существующий Header.css */
 
-.notification-emoji {
-  font-size: 1.2rem;
 }

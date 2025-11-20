@@ -78,7 +78,6 @@ body {
   min-height: 600px;
 }
 
-/* МОБИЛЬНАЯ ВЕРСИЯ */
 @media (max-width: 768px) {
   body {
     font-size: 18px;
@@ -153,12 +152,25 @@ body {
     font-size: 1.3rem;
   }
 
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin: 0 -5px;
+  }
+
+  .metric-card {
+    margin: 0 5px;
+    padding: 18px 15px;
+    transform: translateX(-8px);
+    width: calc(100% - 10px);
+  }
+
   .metric-value {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
   .metric-label {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .step-text,
@@ -169,6 +181,15 @@ body {
   .tip-key,
   .tip-value {
     font-size: 1rem;
+  }
+  .analysis-below-chart {
+    margin: 0 -5px;
+    padding: 0 5px;
+  }
+
+  .analysis-section {
+    margin: 0 5px;
+    padding: 18px 15px;
   }
 }
 
@@ -199,6 +220,34 @@ body {
   .analysis-section h4 {
     font-size: 1.2rem;
   }
+   .metrics-grid {
+    margin: 0 -3px;
+  }
+  .metric-card {
+    margin: 0 3px;
+    padding: 15px 12px;
+    transform: translateX(-5px);
+    width: calc(100% - 6px);
+  }
+
+  .metric-value {
+    font-size: 1.2rem;
+  }
+
+  .metric-label {
+    font-size: 0.9rem;
+  }
+
+  .analysis-below-chart {
+    margin: 0 -3px;
+    padding: 0 3px;
+  }
+
+  .analysis-section {
+    margin: 0 3px;
+    padding: 15px 12px;
+  }
+
 }
 
 /* Центрирование шапки на мобильных */
