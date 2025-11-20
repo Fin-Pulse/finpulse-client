@@ -124,7 +124,7 @@ const RecommendationsDisplay = ({ recommendations }) => {
                       {rec.reasons && rec.reasons.length > 0 ? (
                         rec.reasons.map((reason, index) => (
                           <div key={index} className="reason-item">
-                            • {reason}
+                            {reason}
                           </div>
                         ))
                       ) : (

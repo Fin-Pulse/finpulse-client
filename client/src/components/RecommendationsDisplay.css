@@ -68,7 +68,7 @@
 }
 
 .interest-rate {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #023da7, #022a7c);
   color: white;
   padding: 0.5rem 0.8rem;
   border-radius: 20px;
@@ -256,7 +256,7 @@
 }
 
 .forecast-amount {
-  color: #4CAF50;
+  color: #023da7;
   font-weight: 700;
 }
 
@@ -286,7 +286,7 @@
 
 .score-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #45a049);
+  background: linear-gradient(90deg, #023da7, #022a7c);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -294,7 +294,7 @@
 .score-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #4CAF50;
+  color: #023da7;
   min-width: 45px;
   text-align: right;
 }
@@ -304,7 +304,7 @@
   padding: 0.75rem;
   background: #f8f9fa;
   border-radius: 8px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #023ca79f;
 }
 
 .match-reason {
@@ -317,7 +317,7 @@
 
 .action-button {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #023da7, #022a7c);
   color: white;
   border: none;
   border-radius: 8px;
@@ -399,8 +399,8 @@
   color: #495057;
   line-height: 1.4;
   margin-bottom: 0.4rem;
-  padding-left: 0.5rem;
-  border-left: 2px solid #667eea;
+  border-left: 1px solid #023ca79f;
+  padding-left: 3px;
 }
 
 .reason-item:last-child {
