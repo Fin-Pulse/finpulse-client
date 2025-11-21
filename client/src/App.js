@@ -41,12 +41,29 @@ function App() {
       email: user.email,
       phone: user.phone,
       fullName: user.fullName,
-      // Поддерживаем оба варианта написания bankClientId
       bankClientId: user.bankClientId || user.bank_client_id,
       createdAt: user.createdAt,
       verificationStatus: user.verificationStatus,
       verified: user.verified
     };
+  };
+
+  // Функция для перевода ошибок на русский язык
+  const translateErrorMessage = (errorMessage) => {
+    const errorTranslations = {
+      'Invalid credentials': 'Неверный email или пароль',
+      'User already exists': 'Пользователь с таким email уже существует',
+      'Email already in use': 'Email уже используется',
+      'User not found': 'Пользователь не найден',
+      'Network error': 'Ошибка сети',
+      'Failed to fetch': 'Ошибка соединения с сервером',
+      'All fields are required': 'Все поля обязательны для заполнения',
+      'User ID is required': 'Ошибка авторизации',
+      'Product ID is required': 'Ошибка выбора продукта',
+      'Authentication required': 'Требуется авторизация'
+    };
+
+    return errorTranslations[errorMessage] || errorMessage;
   };
 
   // Восстановление сессии
@@ -66,13 +83,17 @@ function App() {
           setCurrentUserId(profile.id);
           setUserData(normalizeUserData(profile));
           setIsAuthenticated(true);
+          localStorage.setItem('currentUserId', profile.id);
         } else {
           localStorage.removeItem('authToken');
+          localStorage.removeItem('currentUserId');
           setIsAuthenticated(false);
         }
-      } catch {
+      } catch (error) {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('currentUserId');
         setIsAuthenticated(false);
+        setError(translateErrorMessage(error.message));
       } finally {
         setIsInitializing(false);
       }
@@ -102,7 +123,8 @@ function App() {
       if (Array.isArray(notificationsData)) {
         setNotifications(notificationsData);
       }
-    } catch {
+    } catch (error) {
+      console.error('Ошибка загрузки уведомлений:', error);
       setNotifications([]);
     }
   };
@@ -122,7 +144,6 @@ function App() {
       const forecastsClient = new ForecastsClient({ userId: currentUserId });
 
       forecastsClient.onForecast = (forecastData) => {
-        console.log('📊 Received forecast data:', forecastData);
         setForecast(forecastData);
       };
 
@@ -152,13 +173,9 @@ function App() {
       const recClient = new RecommendationsClient({ userId: currentUserId });
 
       recClient.onRecommendation = (data) => {
-        console.log('🎯 Received recommendations data:', data);
-        
         if (data && data.recommendations && Array.isArray(data.recommendations)) {
-          console.log('✅ Setting recommendations array:', data.recommendations.length);
           setRecommendations(data.recommendations);
         } else {
-          console.log('❌ No recommendations array found in data');
           setRecommendations([]);
         }
       };
@@ -219,14 +236,15 @@ function App() {
     setError('');
     try {
       const response = await apiService.login(loginData);
-      console.log('Login response:', response); // Для отладки
       if (response?.user?.id) {
         setCurrentUserId(response.user.id);
         setUserData(normalizeUserData(response.user));
         setIsAuthenticated(true);
+        localStorage.setItem('currentUserId', response.user.id);
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const translatedError = translateErrorMessage(err.message);
+      setError(translatedError);
     } finally {
       setLoading(false);
     }
@@ -243,14 +261,15 @@ function App() {
         phone: registerData.phone,
         fullName: registerData.fullName || 'User',
       });
-      console.log('Register response:', response); // Для отладки
       if (response?.user?.id) {
         setCurrentUserId(response.user.id);
         setUserData(normalizeUserData(response.user));
         setIsAuthenticated(true);
+        localStorage.setItem('currentUserId', response.user.id);
       }
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      const translatedError = translateErrorMessage(err.message);
+      setError(translatedError);
     } finally {
       setLoading(false);
     }
@@ -262,6 +281,7 @@ function App() {
     if (recommendationsClientRef.current) recommendationsClientRef.current.disconnect();
     
     localStorage.removeItem('authToken');
+    localStorage.removeItem('currentUserId');
     setIsAuthenticated(false);
     setAuthMode('login');
     setForecast(null);
@@ -270,6 +290,7 @@ function App() {
     setCurrentUserId(null);
     setUserData(null);
     setShowUserMenu(false);
+    setError('');
   };
 
   const toggleUserMenu = () => {
@@ -330,17 +351,35 @@ function App() {
           userMenuRef={null}
           onLogout={() => {}}
         />
-        {error && <div className="error-message">{error}</div>}
-        {loading && <div className="loading">Loading...</div>}
+        
+        {/* Блок загрузки между заголовком и формой */}
+        {loading && (
+          <div className="auth-loading">
+            Загрузка...
+          </div>
+        )}
+        
+        {error && (
+          <div className="error-message user-friendly-error">
+            {error}
+          </div>
+        )}
+        
         {authMode === 'login' ? (
           <Login
             onLogin={handleLogin}
-            onSwitchToRegister={() => setAuthMode('register')}
+            onSwitchToRegister={() => {
+              setError('');
+              setAuthMode('register');
+            }}
           />
         ) : (
           <Register
             onRegister={handleRegister}
-            onSwitchToLogin={() => setAuthMode('login')}
+            onSwitchToLogin={() => {
+              setError('');
+              setAuthMode('login');
+            }}
           />
         )}
       </div>
@@ -362,22 +401,27 @@ function App() {
       />
 
       <main className="main-content">
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message user-friendly-error">
+            {error}
+          </div>
+        )}
+        
         {loading && <div className="loading">Загрузка данных...</div>}
 
-        {/* Основная панель с ПРАВИЛЬНЫМ ПОРЯДКОМ */}
+        {/* Основная панель */}
         <div className="dashboard">
-          {/* Левая колонка - 1/3 ширины (только для десктопа) */}
           <div className="left-column">
             <div className="forecast-section">
               <ForecastDisplay forecast={forecast} />
             </div>
             
-            {/* Блок с банковскими предложениями */}
-            <RecommendationsDisplay recommendations={recommendations} />
+            <RecommendationsDisplay 
+              recommendations={recommendations}
+              currentUserId={currentUserId || userData?.id}
+            />
           </div>
 
-          {/* Правая колонка - 2/3 ширины (только для десктопа) */}
           <div className="right-column">
             <div className="transactions-section">
               <PieChartDisplay

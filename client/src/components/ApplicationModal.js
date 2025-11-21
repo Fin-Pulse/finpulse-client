@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 import './ApplicationModal.css';
 
-const ApplicationModal = ({ isOpen, onClose, product }) => {
+const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
   const [formData, setFormData] = useState({
     amount: '',
     goal: '',
@@ -9,8 +10,8 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
     productType: product?.productType || 'deposit'
   });
 
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success', 'error', or null
 
   const goals = ['Накопления', 'Покупка недвижимости', 'Образование', 'Пенсия', 'Путешествия', 'Крупная покупка', 'Своя'];
 
@@ -24,8 +25,7 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
         customGoal: '',
         productType: product?.productType || 'deposit'
       });
-      setErrors({});
-      setTouched({});
+      setSubmissionStatus(null);
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -46,125 +46,129 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
     }).format(num);
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Валидация суммы
-    if (!formData.amount.trim()) {
-      newErrors.amount = 'Поле обязательно для заполнения';
-    } else {
-      const amountNum = parseFloat(formData.amount);
-      
-      if (isNaN(amountNum) || amountNum <= 0) {
-        newErrors.amount = 'Введите корректную сумму';
-      } else {
-        // Проверка минимальной суммы
-        if (product?.minAmount !== null && product?.minAmount !== undefined) {
-          const minAmount = parseFloat(product.minAmount);
-          if (amountNum < minAmount) {
-            newErrors.amount = `Минимальная сумма: ${formatCurrency(minAmount)}`;
-          }
-        }
-        
-        // Проверка максимальной суммы
-        if (product?.maxAmount !== null && product?.maxAmount !== undefined) {
-          const maxAmount = parseFloat(product.maxAmount);
-          if (amountNum > maxAmount) {
-            newErrors.amount = `Максимальная сумма: ${formatCurrency(maxAmount)}`;
-          }
-        }
+  const isFormValid = () => {
+    // Проверка обязательных полей
+    if (!formData.amount.trim() || !formData.goal.trim()) {
+      return false;
+    }
+    
+    // Если выбрана своя цель, проверяем что она заполнена
+    if (formData.goal === 'Своя' && !formData.customGoal.trim()) {
+      return false;
+    }
+    
+    // Проверка что сумма - число и больше 0
+    const amountNum = parseFloat(formData.amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      return false;
+    }
+    
+    // Проверка минимальной суммы
+    if (product?.minAmount !== null && product?.minAmount !== undefined) {
+      const minAmount = parseFloat(product.minAmount);
+      if (amountNum < minAmount) {
+        return false;
       }
     }
-
-    // Валидация цели
-    if (!formData.goal.trim()) {
-      newErrors.goal = 'Поле обязательно для заполнения';
+    
+    // Проверка максимальной суммы
+    if (product?.maxAmount !== null && product?.maxAmount !== undefined) {
+      const maxAmount = parseFloat(product.maxAmount);
+      if (amountNum > maxAmount) {
+        return false;
+      }
     }
+    
+    return true;
+  };
 
-    // Валидация кастомной цели
-    if (formData.goal === 'Своя' && !formData.customGoal.trim()) {
-      newErrors.customGoal = 'Поле обязательно для заполнения';
+  const getAmountError = () => {
+    if (!formData.amount.trim()) {
+      return null;
     }
-
-    return newErrors;
+    
+    const amountNum = parseFloat(formData.amount);
+    
+    if (isNaN(amountNum) || amountNum <= 0) {
+      return 'Введите корректную сумму';
+    }
+    
+    // Проверка минимальной суммы
+    if (product?.minAmount !== null && product?.minAmount !== undefined) {
+      const minAmount = parseFloat(product.minAmount);
+      if (amountNum < minAmount) {
+        return `Минимальная сумма: ${formatCurrency(minAmount)}`;
+      }
+    }
+    
+    // Проверка максимальной суммы
+    if (product?.maxAmount !== null && product?.maxAmount !== undefined) {
+      const maxAmount = parseFloat(product.maxAmount);
+      if (amountNum > maxAmount) {
+        return `Максимальная сумма: ${formatCurrency(maxAmount)}`;
+      }
+    }
+    
+    return null;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    const newFormData = {
-      ...formData,
-      [name]: value
-    };
-
-    setFormData(newFormData);
-
-    // Если пользователь начал вводить данные, помечаем поле как "тронутое"
-    if (!touched[name]) {
-      setTouched(prev => ({
-        ...prev,
-        [name]: true
-      }));
-    }
-
-    // Валидация в реальном времени только для тронутых полей
-    if (touched[name]) {
-      const newErrors = validateForm();
-      setErrors(newErrors);
-    }
-  };
-
-  const handleBlur = (e) => {
-    const { name } = e.target;
-    setTouched(prev => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: true
+      [name]: value
     }));
-
-    // Валидируем все поля после потери фокуса
-    const newErrors = validateForm();
-    setErrors(newErrors);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Помечаем все поля как тронутые
-    const allTouched = {
-      amount: true,
-      goal: true,
-      customGoal: true
-    };
-    setTouched(allTouched);
-
-    // Валидируем всю форму
-    const newErrors = validateForm();
+    if (!currentUserId) {
+      return;
+    }
     
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!isFormValid()) {
       return;
     }
 
-    // Формируем финальные данные для отправки
-    const submissionData = {
-      ...formData,
-      productName: product?.productName,
-      productId: product?.productId,
-      interestRate: product?.interestRate,
-      finalGoal: formData.goal === 'Своя' ? formData.customGoal : formData.goal,
-      amount: parseFloat(formData.amount),
-      // Добавляем дополнительные данные из нового формата
-      reasons: product?.reasons,
-      score: product?.score,
-      suitability: product?.suitability
-    };
+    setSubmitting(true);
 
-    console.log('Данные заявки:', submissionData);
-    
-    // Здесь будет отправка на бэкенд
-    // Пример: apiService.submitApplication(submissionData);
-    alert('Заявка успешно отправлена! С вами свяжутся в ближайшее время.');
-    onClose();
+    try {
+      // Формируем финальные данные для отправки
+      const submissionData = {
+        amount: parseFloat(formData.amount),
+        goal: formData.goal === 'Своя' ? formData.customGoal : formData.goal,
+        productType: formData.productType,
+        productName: product?.productName,
+        interestRate: product?.interestRate,
+        reasons: product?.reasons,
+        score: product?.score,
+        suitability: product?.suitability,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Подготавливаем данные для отправки на сервер с bankId
+      const leadData = {
+        userId: currentUserId,
+        productId: product?.productId || 'string',
+        bankId: product?.bankId || '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+        payload: submissionData
+      };
+
+      // Отправляем заявку на сервер
+      await apiService.submitLead(leadData);
+      
+      // УСПЕШНАЯ ОТПРАВКА - показываем окно успеха
+      setSubmissionStatus('success');
+      
+    } catch (error) {
+      // ОШИБКА ОТПРАВКИ - показываем окно ошибки
+      console.error('Ошибка при отправке заявки:', error);
+      setSubmissionStatus('error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOverlayClick = (e) => {
@@ -187,12 +191,78 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
     return parts.length > 0 ? `Доступная сумма: ${parts.join(' ')}` : null;
   };
 
-  const isFormValid = () => {
-    const validationErrors = validateForm();
-    return Object.keys(validationErrors).length === 0;
+  const handleCloseMessage = () => {
+    setSubmissionStatus(null);
+    onClose();
   };
 
   if (!isOpen) return null;
+
+  // Окно успешной отправки
+  if (submissionStatus === 'success') {
+    return (
+      <div className="modal-overlay" onClick={handleOverlayClick}>
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Заявка отправлена</h2>
+            <button className="close-button" onClick={handleCloseMessage}>×</button>
+          </div>
+          
+          <div className="message-content">
+            <div className="success-icon">✓</div>
+            <h3>Спасибо за вашу заявку!</h3>
+            <p>Мы свяжемся с вами в ближайшее время для уточнения деталей</p>
+            <button 
+              className="submit-button" 
+              onClick={handleCloseMessage}
+              style={{marginTop: '20px'}}
+            >
+              Закрыть
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Окно ошибки
+  if (submissionStatus === 'error') {
+    return (
+      <div className="modal-overlay" onClick={handleOverlayClick}>
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Ошибка отправки</h2>
+            <button className="close-button" onClick={handleCloseMessage}>×</button>
+          </div>
+          
+          <div className="message-content">
+            <div className="error-icon">⚠</div>
+            <h3>Не удалось отправить заявку</h3>
+            <p>Пожалуйста, попробуйте позже или обратитесь в поддержку</p>
+            <div className="form-actions" style={{marginTop: '20px'}}>
+              <button 
+                type="button" 
+                className="cancel-button" 
+                onClick={() => setSubmissionStatus(null)}
+              >
+                Назад к форме
+              </button>
+              <button 
+                className="submit-button" 
+                onClick={handleCloseMessage}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Оригинальная форма заявки
+  const amountError = getAmountError();
+  const isFormCurrentlyValid = isFormValid();
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
@@ -216,11 +286,13 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
               name="amount"
               value={formData.amount}
               onChange={handleInputChange}
-              onBlur={handleBlur}
               placeholder="Введите сумму"
               min="0"
-              step="1000"
+              step="any" // ИЗМЕНЕНО: разрешаем любые числа
             />
+            {amountError && (
+              <div className="amount-error">{amountError}</div>
+            )}
             {getAmountRangeText() && (
               <div className="amount-range-hint">{getAmountRangeText()}</div>
             )}
@@ -233,7 +305,6 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
               name="goal"
               value={formData.goal}
               onChange={handleInputChange}
-              onBlur={handleBlur}
             >
               <option value="">Выберите цель</option>
               {goals.map(goal => (
@@ -251,22 +322,21 @@ const ApplicationModal = ({ isOpen, onClose, product }) => {
                 name="customGoal"
                 value={formData.customGoal}
                 onChange={handleInputChange}
-                onBlur={handleBlur}
                 placeholder="Опишите вашу цель"
               />
             </div>
           )}
 
           <div className="form-actions">
-            <button type="button" className="cancel-button" onClick={onClose}>
+            <button type="button" className="cancel-button" onClick={onClose} disabled={submitting}>
               Отмена
             </button>
             <button 
               type="submit" 
               className="submit-button"
-              disabled={!isFormValid()}
+              disabled={!isFormCurrentlyValid || submitting}
             >
-              Оставить заявку
+              {submitting ? 'Отправка...' : 'Оставить заявку'}
             </button>
           </div>
         </form>
