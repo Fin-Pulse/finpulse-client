@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-const Login = ({ onLogin, onSwitchToRegister }) => {
+const Login = ({ onLogin, onSwitchToRegister, onDemoLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -17,6 +19,15 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onLogin(formData);
+  };
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    try {
+      await onDemoLogin();
+    } finally {
+      setDemoLoading(false);
+    }
   };
 
   return (
@@ -56,6 +67,24 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
             Войти
           </button>
         </form>
+
+        {/* КНОПКА ДЕМО-ВХОДА - ДОЛЖНА БЫТЬ ЗДЕСЬ */}
+        <div className="demo-login-section">
+          <div className="demo-divider">
+            <span>или</span>
+          </div>
+          <button 
+            type="button" 
+            className="demo-button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading}
+          >
+            {demoLoading ? 'Вход...' : 'Демо-вход'}
+          </button>
+          <p className="demo-hint">
+            Попробуйте сервис без регистрации с тестовым аккаунтом
+          </p>
+        </div>
 
         <div className="auth-switch">
           <p>Нет аккаунта? 

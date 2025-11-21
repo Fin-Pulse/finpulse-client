@@ -159,3 +159,72 @@ input[type="password"].form-input:valid {
     gap: 12px;
   }
 }
+
+/* Стили для демо-входа */
+.demo-login-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.demo-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e8ecef;
+}
+
+.demo-divider span {
+  padding: 0 15px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.demo-button {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 10px;
+}
+
+.demo-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+}
+
+.demo-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.demo-hint {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .demo-button {
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
+  
+  .demo-hint {
+    font-size: 0.8rem;
+  }
+}

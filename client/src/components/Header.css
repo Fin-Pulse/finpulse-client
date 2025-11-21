@@ -78,8 +78,8 @@
 }
 
 .notification-icon {
-  width: 22px;
-  height: 22px;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
 }
 
@@ -101,24 +101,136 @@
   font-family: 'Montserrat', sans-serif;
 }
 
+/* Убираем старую кнопку выхода */
 .logout-button {
-  background: white;
-  color: #333;
-  border: 1px solid #e0e0e0;
-  padding: 10px 20px;
-  border-radius: 50px;
-  font-size: 0.9rem;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: none;
 }
 
-.logout-button:hover {
+/* Новые стили для меню пользователя */
+.user-menu-container {
+  position: relative;
+}
+
+.user-avatar-button {
+  background: white;
+  border: none;
+  width: 45px; /* Уменьшили с 45px до 40px */
+  height: 45px; /* Уменьшили с 45px до 40px */
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar-button:hover {
   background: #f5f5f5;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.user-avatar-button:active {
+  transform: translateY(0);
+}
+
+.user-avatar {
+  width: 110%;
+  height: 110%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+  overflow: hidden;
+  animation: dropdownAppear 0.2s ease-out;
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-info-section {
+  padding: 1.25rem;
+  border-bottom: 1px solid #e8ecef;
+}
+
+.user-info-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.user-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.user-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.user-info-label {
+  color: #6c757d;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.user-info-value {
+  color: #2c3e50;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-word;
+  flex: 1;
+}
+
+.user-menu-actions {
+  padding: 1rem 1.25rem;
+}
+
+.logout-menu-button {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.logout-menu-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -160,15 +272,11 @@
     gap: 8px;
     margin-top: 5px;
   }
-  
-  .logout-button {
-    padding: 7px 14px;
-    font-size: 0.8rem;
-  }
 
-  .notifications-button {
-    width: 38px;
-    height: 38px;
+  .notifications-button,
+  .user-avatar-button {
+    width: 32px;
+    height: 32px;
   }
 
   .notification-icon {
@@ -180,6 +288,115 @@
     width: 16px;
     height: 16px;
     font-size: 0.6rem;
+  }
+
+    .user-dropdown-menu {
+    position: fixed; /* Меняем на фиксированное позиционирование */
+    top: 50%; /* Центрируем по вертикали */
+    left: 50%; /* Центрируем по горизонтали */
+    right: auto; /* Убираем right */
+    transform: translate(-50%, -50%); /* Сдвигаем обратно на половину ширины/высоты */
+    min-width: 280px;
+    max-width: 90vw; /* Ограничиваем максимальную ширину */
+    margin-top: 0; /* Убираем отступ */
+    z-index: 1001; /* Увеличиваем z-index чтобы было поверх всего */
+  }
+
+  .user-info-section {
+    padding: 1rem;
+  }
+
+  .user-info-item {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .user-info-value {
+    text-align: left;
+  }
+}
+
+.bank-buttons-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e8ecef;
+  background: white;
+}
+
+.bank-buttons-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  text-align: center;
+}
+
+.bank-buttons-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bank-button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  text-align: center;
+}
+
+.bank-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bank-button:active {
+  transform: translateY(0);
+}
+
+/* Цвета для кнопок банков */
+.virtual-bank {
+  background: #667eea;
+}
+
+.awesome-bank {
+  background: #e74c3c;
+}
+
+.smart-bank {
+  background: #27ae60;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .bank-buttons-section {
+    padding: 0.875rem 1rem;
+  }
+
+  .bank-buttons-section h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .bank-button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bank-buttons-section {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .bank-button {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -210,13 +427,20 @@
     margin-top: 3px;
   }
 
-  .notifications-button {
-    width: 36px;
-    height: 36px;
+  .notifications-button,
+  .user-avatar-button {
+    width: 40px;
+    height: 40px;
   }
 
   .notification-icon {
-    width: 18px;
-    height: 18px;
+    width: 90%;
+    height: 90%;
   }
+
+   .user-dropdown-menu {
+    min-width: 260px;
+    max-width: 85vw; /* Еще немного уменьшаем на очень маленьких экранах */
+  }
+
 }

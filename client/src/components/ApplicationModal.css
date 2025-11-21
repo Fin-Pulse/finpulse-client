@@ -1,0 +1,566 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: modalAppear 0.3s ease-out;
+}
+
+.warning-icon {
+  width: 80px;
+  height: 80px;
+  background: #ff9800;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e8ecef;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #6c757d;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #f8f9fa;
+  color: #333;
+}
+
+.product-info {
+  padding: 20px 24px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e8ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.interest-rate-badge {
+  background: linear-gradient(135deg, #023da7, #022a7c);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.application-form {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e8ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #023da7;
+  box-shadow: 0 0 0 3px rgba(2, 61, 167, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #6c757d;
+}
+
+.amount-range-hint {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.cancel-button,
+.submit-button {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-button {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 2px solid #e8ecef;
+}
+
+.cancel-button:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.submit-button {
+  background: linear-gradient(135deg, #023da7, #022a7c);
+  color: white;
+  box-shadow: 0 4px 12px rgba(2, 61, 167, 0.3);
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 61, 167, 0.4);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 20px 20px 12px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .product-info {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .application-form {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 16px 16px 12px;
+  }
+
+  .application-form {
+    padding: 16px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 10px 14px;
+    font-size: 16px; /* Убираем зум на iOS */
+  }
+}
+/* Дополнительные стили для мобильной версии */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-height: 85vh;
+  }
+
+  .application-form {
+    padding: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 14px 12px;
+    font-size: 16px; /* Предотвращает зум на iOS */
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 5px;
+  }
+
+  .modal-content {
+    margin: 5px;
+    width: calc(100% - 10px);
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 15px 15px 10px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .product-info {
+    padding: 12px 15px;
+  }
+
+  .product-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .application-form {
+    padding: 12px;
+  }
+}
+/* Добавьте эти стили в ApplicationModal.css */
+
+.error-message {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.submit-error-message {
+  color: #d32f2f;
+  margin-bottom: 15px;
+  text-align: center;
+  padding: 10px;
+  background-color: #ffebee;
+  border-radius: 8px;
+  border-left: 4px solid #d32f2f;
+  font-weight: 500;
+}
+
+.input-error {
+  border-color: #d32f2f !important;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1) !important;
+}
+
+/* Улучшаем внешний вид полей с ошибками */
+
+/* Анимация для появления ошибок */
+.error-message {
+  animation: errorAppear 0.3s ease-out;
+}
+
+@keyframes errorAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .error-message {
+    font-size: 0.75rem;
+  }
+  
+  .submit-error-message {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+}
+/* Стили для сообщений */
+.message-content {
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.error-icon {
+  width: 100px;
+  height: 100px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.message-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.message-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .message-content {
+    padding: 30px 20px;
+  }
+  
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  
+  .message-content h3 {
+    font-size: 1.3rem;
+  }
+  
+  .message-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-content {
+    padding: 24px 16px;
+  }
+}
+/* Стили для сообщений об ошибках суммы */
+.amount-error {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.amount-range-hint {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Стили для сообщений */
+.message-content {
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.message-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.message-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .message-content {
+    padding: 30px 20px;
+  }
+  
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  
+  .message-content h3 {
+    font-size: 1.3rem;
+  }
+  
+  .message-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-content {
+    padding: 24px 16px;
+  }
+  
+  .amount-error {
+    font-size: 0.75rem;
+  }
+  
+  .amount-range-hint {
+    font-size: 0.8rem;
+  }
+}
