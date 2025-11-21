@@ -132,6 +132,9 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
       return;
     }
 
+    console.log('Product data in ApplicationModal:', product); // ← ДОБАВЬТЕ ЭТУ СТРОКУ
+    console.log('BankId in ApplicationModal:', product?.bankId);
+
     setSubmitting(true);
 
     try {
@@ -149,10 +152,11 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
       };
       
       // Подготавливаем данные для отправки на сервер с bankId
+      // Подготавливаем данные для отправки на сервер с bankId
       const leadData = {
         userId: currentUserId,
         productId: product?.productId || 'string',
-        bankId: product?.bankId || '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+        bankId: product?.bankId || '3fa85f64-5717-4562-b3fc-2c963f66afa6', // ← ИСПОЛЬЗУЕМ bankId вместо bank_id
         payload: submissionData
       };
 
