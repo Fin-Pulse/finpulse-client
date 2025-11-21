@@ -248,3 +248,305 @@
     font-size: 16px; /* Убираем зум на iOS */
   }
 }
+/* Дополнительные стили для мобильной версии */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 10px;
+    width: calc(100% - 20px);
+    max-height: 85vh;
+  }
+
+  .application-form {
+    padding: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 14px 12px;
+    font-size: 16px; /* Предотвращает зум на iOS */
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 5px;
+  }
+
+  .modal-content {
+    margin: 5px;
+    width: calc(100% - 10px);
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 15px 15px 10px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .product-info {
+    padding: 12px 15px;
+  }
+
+  .product-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .application-form {
+    padding: 12px;
+  }
+}
+/* Добавьте эти стили в ApplicationModal.css */
+
+.error-message {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.submit-error-message {
+  color: #d32f2f;
+  margin-bottom: 15px;
+  text-align: center;
+  padding: 10px;
+  background-color: #ffebee;
+  border-radius: 8px;
+  border-left: 4px solid #d32f2f;
+  font-weight: 500;
+}
+
+.input-error {
+  border-color: #d32f2f !important;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1) !important;
+}
+
+/* Улучшаем внешний вид полей с ошибками */
+
+/* Анимация для появления ошибок */
+.error-message {
+  animation: errorAppear 0.3s ease-out;
+}
+
+@keyframes errorAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .error-message {
+    font-size: 0.75rem;
+  }
+  
+  .submit-error-message {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+}
+/* Стили для сообщений */
+.message-content {
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.error-icon {
+  width: 100px;
+  height: 100px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.message-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.message-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .message-content {
+    padding: 30px 20px;
+  }
+  
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  
+  .message-content h3 {
+    font-size: 1.3rem;
+  }
+  
+  .message-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-content {
+    padding: 24px 16px;
+  }
+}
+/* Стили для сообщений об ошибках суммы */
+.amount-error {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.amount-range-hint {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Стили для сообщений */
+.message-content {
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.message-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.message-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .message-content {
+    padding: 30px 20px;
+  }
+  
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  
+  .message-content h3 {
+    font-size: 1.3rem;
+  }
+  
+  .message-content p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-content {
+    padding: 24px 16px;
+  }
+  
+  .amount-error {
+    font-size: 0.75rem;
+  }
+  
+  .amount-range-hint {
+    font-size: 0.8rem;
+  }
+}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ApplicationModal from './ApplicationModal';
 import './RecommendationsDisplay.css';
 
-const RecommendationsDisplay = ({ recommendations }) => {
+const RecommendationsDisplay = ({ recommendations, currentUserId }) => {
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -26,6 +26,7 @@ const RecommendationsDisplay = ({ recommendations }) => {
     setSelectedProduct({
       ...rec.product,
       productId: rec.product_id || rec.product.productId,
+      bankId: rec.product.bank_id, // Добавляем bankId
       reasons: rec.reasons,
       score: rec.score,
       suitability: rec.suitability
@@ -153,6 +154,7 @@ const RecommendationsDisplay = ({ recommendations }) => {
         isOpen={modalOpen}
         onClose={handleCloseModal}
         product={selectedProduct}
+        currentUserId={currentUserId}
       />
     </>
   );

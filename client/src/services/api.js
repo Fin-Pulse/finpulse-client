@@ -1,9 +1,9 @@
 const API_CONFIG = {
   USER_SERVICE: 'http://localhost', 
   AGGREGATION_SERVICE: 'http://localhost',
-  NOTIFICATION_SERVICE: 'http://localhost'
+  NOTIFICATION_SERVICE: 'http://localhost',
+  LEAD_SERVICE: 'http://localhost:8080'
 };
-
 
 class ApiService {
   constructor() {
@@ -20,6 +20,38 @@ class ApiService {
     localStorage.removeItem('authToken');
   }
 
+  // Функция для извлечения сообщения об ошибке из ответа сервера
+  extractErrorMessage(error) {
+    try {
+      // Если ошибка уже в формате строки
+      if (typeof error === 'string') {
+        return error;
+      }
+      
+      // Если ошибка в формате { "error": "message" }
+      if (error.error) {
+        return error.error;
+      }
+      
+      // Если ошибка в формате { "message": "text" }
+      if (error.message) {
+        return error.message;
+      }
+      
+      // Если это объект с другими полями
+      if (typeof error === 'object') {
+        const firstKey = Object.keys(error)[0];
+        if (firstKey) {
+          return error[firstKey];
+        }
+      }
+      
+      return 'Произошла неизвестная ошибка';
+    } catch (e) {
+      return 'Произошла ошибка при обработке ответа сервера';
+    }
+  }
+
   async request(service, endpoint, options = {}) {
     let baseUrl;
     
@@ -32,6 +64,9 @@ class ApiService {
         break;
       case 'notification':
         baseUrl = API_CONFIG.NOTIFICATION_SERVICE;
+        break;
+      case 'lead':
+        baseUrl = API_CONFIG.LEAD_SERVICE;
         break;
       default:
         baseUrl = API_CONFIG.USER_SERVICE;
@@ -48,7 +83,8 @@ class ApiService {
       ...options,
     };
 
-    if (config.body && typeof config.body === 'object') {
+    // Очистка данных для всех сервисов кроме lead
+    if (config.body && typeof config.body === 'object' && service !== 'lead') {
       const cleanedBody = {};
       Object.keys(config.body).forEach(key => {
         if (config.body[key] !== undefined && config.body[key] !== null) {
@@ -56,6 +92,9 @@ class ApiService {
         }
       });
       config.body = JSON.stringify(cleanedBody);
+    } else if (config.body && typeof config.body === 'object') {
+      // Для lead сервиса просто преобразуем в JSON без очистки
+      config.body = JSON.stringify(config.body);
     }
 
     try {
@@ -65,12 +104,28 @@ class ApiService {
         const errorText = await response.text();
         console.error('❌ Authentication failed, clearing token');
         this.clearToken();
-        throw new Error(`HTTP 401: ${errorText}`);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        
+        throw new Error(this.extractErrorMessage(errorData));
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        let errorData;
+        
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        
+        throw new Error(this.extractErrorMessage(errorData));
       }
 
       const contentType = response.headers.get('content-type');
@@ -81,7 +136,14 @@ class ApiService {
       }
     } catch (error) {
       console.error(`❌ API request failed for ${endpoint}:`, error);
-      throw error;
+      
+      // Если это уже наша обработанная ошибка, просто пробрасываем её
+      if (error.message && error.message !== 'Failed to fetch') {
+        throw error;
+      }
+      
+      // Для сетевых ошибок и других случаев
+      throw new Error('Ошибка соединения с сервером. Проверьте интернет-соединение и попробуйте снова.');
     }
   }
 
@@ -96,9 +158,8 @@ class ApiService {
       fullName: String(userData.fullName || 'User').trim()
     };
 
-
     if (!cleanedData.email || !cleanedData.password || !cleanedData.bank_client_id || !cleanedData.phone) {
-      throw new Error('All fields are required');
+      throw new Error('Все поля обязательны для заполнения');
     }
 
     const data = await this.request('user', '/api/bank/auth/register', {
@@ -159,13 +220,11 @@ class ApiService {
   }
 
   async markNotificationAsRead(notificationId) {
-    
     if (!this.token) {
       console.error('❌ No auth token available for markNotificationAsRead');
       throw new Error('Authentication required');
     }
 
-    
     try {
       const result = await this.request('notification', `/api/notifications/${notificationId}/read`, {
         method: 'PUT'
@@ -176,6 +235,22 @@ class ApiService {
       console.error(`❌ Failed to mark notification ${notificationId} as read:`, error);
       throw error;
     }
+  }
+
+  // Метод для отправки заявок
+  async submitLead(leadData) {
+    if (!leadData.userId) {
+      throw new Error('User ID is required for lead submission');
+    }
+
+    if (!leadData.productId) {
+      throw new Error('Product ID is required for lead submission');
+    }
+
+    return this.request('lead', '/leads/new', {
+      method: 'POST',
+      body: leadData
+    });
   }
 }
 
