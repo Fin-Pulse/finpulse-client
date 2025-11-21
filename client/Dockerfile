@@ -8,9 +8,9 @@ RUN npm install --silent
 
 COPY . .
 
-ENV REACT_APP_API_BASE_URL=http://localhost:8080
-ENV REACT_APP_NOTIFICATIONS_WS_URL=ws://localhost:8080/ws/notifications
-ENV REACT_APP_FORECASTS_WS_URL=ws://localhost:8080/ws/forecasts
+ENV REACT_APP_API_BASE_URL=http://178.72.136.220:8080
+ENV REACT_APP_NOTIFICATIONS_WS_URL=ws://178.72.136.220:8080/ws/notifications
+ENV REACT_APP_FORECASTS_WS_URL=ws://178.72.136.220:8080/ws/forecasts
 
 RUN npm run build
 

@@ -250,6 +250,28 @@ function App() {
     }
   };
 
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiService.demoLogin();
+      console.log('Demo login response:', response);
+      if (response?.user?.id) {
+        setCurrentUserId(response.user.id);
+        setUserData(normalizeUserData(response.user));
+        setIsAuthenticated(true);
+        localStorage.setItem('currentUserId', response.user.id);
+        console.log('✅ Демо-вход выполнен, userId:', response.user.id);
+      }
+    } catch (err) {
+      const translatedError = translateErrorMessage(err.message);
+      setError(translatedError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRegister = async (registerData) => {
     setLoading(true);
     setError('');
@@ -372,6 +394,7 @@ function App() {
               setError('');
               setAuthMode('register');
             }}
+            onDemoLogin={handleDemoLogin} // ДОБАВЛЕН ОБРАБОТЧИК ДЕМО-ВХОДА
           />
         ) : (
           <Register

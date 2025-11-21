@@ -1,8 +1,8 @@
 const API_CONFIG = {
-  USER_SERVICE: 'http://localhost', 
-  AGGREGATION_SERVICE: 'http://localhost',
-  NOTIFICATION_SERVICE: 'http://localhost',
-  LEAD_SERVICE: 'http://localhost:8080'
+    USER_SERVICE: 'http://178.72.136.220:8080', 
+    AGGREGATION_SERVICE: 'http://178.72.136.220:8080',
+    NOTIFICATION_SERVICE: 'http://178.72.136.220:8080',
+    LEAD_SERVICE: 'http://178.72.136.220:8080'
 };
 
 class ApiService {
@@ -112,7 +112,10 @@ class ApiService {
           errorData = { error: errorText };
         }
         
-        throw new Error(this.extractErrorMessage(errorData));
+        // СОЗДАЕМ ОШИБКУ С СТАТУСОМ
+        const error = new Error(this.extractErrorMessage(errorData));
+        error.status = 401;
+        throw error;
       }
 
       if (!response.ok) {
@@ -125,7 +128,10 @@ class ApiService {
           errorData = { error: errorText };
         }
         
-        throw new Error(this.extractErrorMessage(errorData));
+        // СОЗДАЕМ ОШИБКУ С СТАТУСОМ
+        const error = new Error(this.extractErrorMessage(errorData));
+        error.status = response.status;
+        throw error;
       }
 
       const contentType = response.headers.get('content-type');
@@ -137,13 +143,20 @@ class ApiService {
     } catch (error) {
       console.error(`❌ API request failed for ${endpoint}:`, error);
       
-      // Если это уже наша обработанная ошибка, просто пробрасываем её
+      // Если это уже наша обработанная ошибка (с статусом), просто пробрасываем её
+      if (error.status) {
+        throw error;
+      }
+      
+      // Если это уже наша обработанная ошибка (без статуса), но с сообщением
       if (error.message && error.message !== 'Failed to fetch') {
         throw error;
       }
       
       // Для сетевых ошибок и других случаев
-      throw new Error('Ошибка соединения с сервером. Проверьте интернет-соединение и попробуйте снова.');
+      const networkError = new Error('Ошибка соединения с сервером. Проверьте интернет-соединение и попробуйте снова.');
+      networkError.status = 0; // Сетевые ошибки не имеют HTTP статуса
+      throw networkError;
     }
   }
 
@@ -181,6 +194,19 @@ class ApiService {
         email: credentials.email,
         password: credentials.password
       },
+    });
+    
+    if (data.accessToken) {
+      this.setToken(data.accessToken);
+    }
+    
+    return data;
+  }
+
+  // ДОБАВЛЕН МЕТОД ДЛЯ ДЕМО-ВХОДА
+  async demoLogin() {
+    const data = await this.request('user', '/api/bank/auth/demo-login', {
+      method: 'POST'
     });
     
     if (data.accessToken) {

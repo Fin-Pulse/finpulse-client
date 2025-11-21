@@ -11,7 +11,7 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
   });
 
   const [submitting, setSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success', 'error', or null
+  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success', 'error', 'conflict', or null
 
   const goals = ['Накопления', 'Покупка недвижимости', 'Образование', 'Пенсия', 'Путешествия', 'Крупная покупка', 'Своя'];
 
@@ -163,9 +163,16 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
       setSubmissionStatus('success');
       
     } catch (error) {
-      // ОШИБКА ОТПРАВКИ - показываем окно ошибки
+      // ОШИБКА ОТПРАВКИ - проверяем тип ошибки
       console.error('Ошибка при отправке заявки:', error);
-      setSubmissionStatus('error');
+      
+      if (error.status === 409) {
+        // КОНФЛИКТ - заявка уже существует
+        setSubmissionStatus('conflict');
+      } else {
+        // ДРУГАЯ ОШИБКА
+        setSubmissionStatus('error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -218,6 +225,33 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
               style={{marginTop: '20px'}}
             >
               Закрыть
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Окно конфликта - заявка уже существует
+  if (submissionStatus === 'conflict') {
+    return (
+      <div className="modal-overlay" onClick={handleOverlayClick}>
+        <div className="modal-content">
+          <div className="modal-header">
+            <h2>Заявка уже существует</h2>
+            <button className="close-button" onClick={handleCloseMessage}>×</button>
+          </div>
+          
+          <div className="message-content">
+            <div className="warning-icon">⚠</div>
+            <h3>Вы уже подавали заявку на этот продукт</h3>
+            <p>Мы уже обрабатываем вашу предыдущую заявку. Пожалуйста, дождитесь ответа от банка.</p>
+            <button 
+              className="submit-button" 
+              onClick={handleCloseMessage}
+              style={{marginTop: '20px'}}
+            >
+              Понятно
             </button>
           </div>
         </div>
@@ -288,7 +322,7 @@ const ApplicationModal = ({ isOpen, onClose, product, currentUserId }) => {
               onChange={handleInputChange}
               placeholder="Введите сумму"
               min="0"
-              step="any" // ИЗМЕНЕНО: разрешаем любые числа
+              step="any"
             />
             {amountError && (
               <div className="amount-error">{amountError}</div>

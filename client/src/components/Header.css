@@ -316,6 +316,90 @@
   }
 }
 
+.bank-buttons-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e8ecef;
+  background: white;
+}
+
+.bank-buttons-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  text-align: center;
+}
+
+.bank-buttons-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bank-button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  text-align: center;
+}
+
+.bank-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bank-button:active {
+  transform: translateY(0);
+}
+
+/* Цвета для кнопок банков */
+.virtual-bank {
+  background: #667eea;
+}
+
+.awesome-bank {
+  background: #e74c3c;
+}
+
+.smart-bank {
+  background: #27ae60;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .bank-buttons-section {
+    padding: 0.875rem 1rem;
+  }
+
+  .bank-buttons-section h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.625rem;
+  }
+
+  .bank-button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bank-buttons-section {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .bank-button {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 480px) {
   .header {
     padding: 15px 10px 10px 10px;
